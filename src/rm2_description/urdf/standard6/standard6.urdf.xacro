@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="standard6">
+
+    <xacro:arg name="load_chassis" default="true"/>
+    <xacro:arg name="load_gimbal" default="false"/>
+    <xacro:arg name="load_shooter" default="false"/>
+    <xacro:arg name="camera_link" default="camera_link"/>
+    <xacro:arg name="camera_optical_frame" default="camera_optical_frame"/>
+    <xacro:arg name="camera2_optical_frame" default="camera2_optical_frame"/>
+    <xacro:arg name="roller_type" default="simple"/>
+    <xacro:arg name="use_simulation" default="false"/>
+    <xacro:arg name="roller_type" default="realistic"/>
+
+    <xacro:if value="$(arg load_chassis)">
+        <xacro:include filename="$(find rm2_description)/urdf/standard6/chassis.urdf.xacro"/>
+        <xacro:chassis roller_type="$(arg roller_type)"/>
+
+        <xacro:if value="$(arg load_gimbal)">
+            <xacro:include filename="$(find rm2_description)/urdf/standard6/gimbal.urdf.xacro"/>
+            <xacro:include filename="$(find rm2_description)/urdf/standard6/gimbal.transmission.urdf.xacro"/>
+            <xacro:include filename="$(find rm2_description)/urdf/common/camera.urdf.xacro"/>
+            <xacro:include filename="$(find rm2_description)/urdf/common/imu.urdf.xacro"/>
+            <xacro:camera_sensor xyz="0.10285 0.0 0.039935" rpy="0 0 0" frame_id="$(arg camera_link)"
+                                 camera_type="hk_camera"
+                                 parent="pitch"
+                                 camera_sim="$(arg use_simulation)"/>
+            <xacro:camera_optical_frame xyz="0.10285 0.0 0.024935"
+                                        rpy="-1.538075 0.0527913 -1.57700212"
+                                        frame_id="$(arg camera_optical_frame)"
+                                        parent="pitch"
+                                        camera_sim="false"/>
+            <xacro:camera_optical_frame xyz="0.10285 0.0 0.024935"
+                                        rpy="-1.545333447075 0.0527913 -1.5837212"
+                                        frame_id="$(arg camera2_optical_frame)"
+                                        parent="pitch"
+                                        camera_sim="false"/>
+            <xacro:IMU connected_to="pitch" imu_name="gimbal_imu"
+                       xyz="0.003967 0.0 0.068977"
+                       rpy="-0.01 0.0 ${-pi/2}"/>
+            <xacro:if value="$(arg load_shooter)">
+                <xacro:include filename="$(find rm2_description)/urdf/standard6/shooter.urdf.xacro"/>
+                <xacro:include filename="$(find rm2_description)/urdf/standard6/shooter.transmission.urdf.xacro"/>
+            </xacro:if>
+        </xacro:if>
+    </xacro:if>
+
+    <ros2_control name="RmEcatHardwareInterface" type="system">
+        <hardware>
+            <plugin>rm2_ecat_ros/RmEcatHardwareInterface</plugin>
+        </hardware>
+
+        <joint name="left_front_wheel_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="right_front_wheel_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="left_back_wheel_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="right_back_wheel_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <!--Other joint wait to added-->
+    </ros2_control>
+
+</robot>

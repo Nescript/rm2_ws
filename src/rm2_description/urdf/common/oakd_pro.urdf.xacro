@@ -1,0 +1,174 @@
+<?xml version="1.0"?>
+
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="oak_pro">
+
+    <xacro:macro name="oak_pro" params="simulation camera_name camera_model parent base_frame
+                                           cam_pos_x cam_pos_y cam_pos_z
+                                           cam_roll cam_pitch cam_yaw
+                                           r:=0.8 g:=0.8 b:=0.8 a:=0.8">
+
+        <xacro:include filename="$(find depthai_bridge)/urdf/include/depthai_macro.urdf.xacro"/>
+        <xacro:unless value="${simulation}">
+            <xacro:depthai_camera camera_name="${camera_name}" parent="${parent}"
+                                  camera_model="${camera_model}" base_frame="${base_frame}"
+                                  cam_pos_x="${cam_pos_x}" cam_pos_y="${cam_pos_y}" cam_pos_z="${cam_pos_z}"
+                                  cam_roll="${cam_roll}" cam_pitch="${cam_pitch}" cam_yaw="${cam_yaw}"/>
+        </xacro:unless>
+
+        <xacro:if value="${simulation}">
+            <xacro:depthai_camera camera_name="${camera_name}" parent="${parent}"
+                                  camera_model="${camera_model}" base_frame="${base_frame}"
+                                  cam_pos_x="${cam_pos_x}" cam_pos_y="${cam_pos_y}" cam_pos_z="${cam_pos_z}"
+                                  cam_roll="${cam_roll}" cam_pitch="${cam_pitch}" cam_yaw="${cam_yaw}"/>
+            <!-- Gazebo plugin for greyscale left/right stereo pairs -->
+            <gazebo reference="${camera_name}_left_camera_frame">
+                <material>Gazebo/DarkGrey</material>
+                <sensor type="depth" name="stereo_left_camera">
+                    <update_rate>30.0</update_rate>
+                    <camera name="left">
+                        <horizontal_fov>1.2566</horizontal_fov>
+                        <image>
+                            <width>1200</width>
+                            <height>800</height>
+                            <format>L8</format>
+                            <!--   <format>R8G8B8</format> -->
+                        </image>
+                        <clip>
+                            <near>0.3</near>
+                            <far>35</far>
+                        </clip>
+                        <noise>
+                            <type>gaussian</type>
+                            <mean>0.0</mean>
+                            <stddev>0.007</stddev>
+                        </noise>
+                    </camera>
+                    <plugin name="${camera_name}_left_controller" filename="libgazebo_ros_openni_kinect.so">
+                        <baseline>0.2</baseline>
+                        <alwaysOn>true</alwaysOn>
+                        <updateRate>0.0</updateRate>
+                        <cameraName>${camera_name}_left</cameraName>
+                        <imageTopicName>color/image_raw</imageTopicName>
+                        <cameraInfoTopicName>color/camera_info</cameraInfoTopicName>
+                        <depthImageTopicName>depth/image_rect_raw</depthImageTopicName>
+                        <depthImageInfoTopicName>depth/camera_info</depthImageInfoTopicName>
+                        <pointCloudTopicName>depth/color/points</pointCloudTopicName>
+                        <frameName>${camera_name}_left_camera_optical_frame</frameName>
+                        <pointCloudCutoff>0.5</pointCloudCutoff>
+                        <pointCloudCutoffMax>3.0</pointCloudCutoffMax>
+                        <distortionK1>0.00000001</distortionK1>
+                        <distortionK2>0.00000001</distortionK2>
+                        <distortionK3>0.00000001</distortionK3>
+                        <distortionT1>0.00000001</distortionT1>
+                        <distortionT2>0.00000001</distortionT2>
+                        <CxPrime>0</CxPrime>
+                        <Cx>0</Cx>
+                        <Cy>0</Cy>
+                        <focalLength>0</focalLength>
+                        <hackBaseline>0</hackBaseline>
+                    </plugin>
+                </sensor>
+            </gazebo>
+
+            <gazebo reference="${camera_name}_right_camera_frame">
+                <material>Gazebo/DarkGrey</material>
+                <sensor type="depth" name="stereo_right_camera">
+                    <update_rate>30.0</update_rate>
+                    <camera name="right">
+                        <pose>0 -0.07 0 0 0 0</pose>
+                        <horizontal_fov>1.1.2566</horizontal_fov>
+                        <image>
+                            <width>1200</width>
+                            <height>800</height>
+                            <format>L8</format>
+                            <!--   <format>R8G8B8</format> -->
+                        </image>
+                        <clip>
+                            <near>0.3</near>
+                            <far>35</far>
+                        </clip>
+                        <noise>
+                            <type>gaussian</type>
+                            <mean>0.0</mean>
+                            <stddev>0.007</stddev>
+                        </noise>
+                    </camera>
+                    <plugin name="${camera_name}_right_controller" filename="libgazebo_ros_openni_kinect.so">
+                        <baseline>0.2</baseline>
+                        <alwaysOn>true</alwaysOn>
+                        <updateRate>0.0</updateRate>
+                        <cameraName>${camera_name}_right</cameraName>
+                        <imageTopicName>color/image_raw</imageTopicName>
+                        <cameraInfoTopicName>color/camera_info</cameraInfoTopicName>
+                        <depthImageTopicName>depth/image_rect_raw</depthImageTopicName>
+                        <depthImageInfoTopicName>depth/camera_info</depthImageInfoTopicName>
+                        <pointCloudTopicName>depth/color/points</pointCloudTopicName>
+                        <frameName>${camera_name}_right_camera_optical_frame</frameName>
+                        <pointCloudCutoff>0.5</pointCloudCutoff>
+                        <pointCloudCutoffMax>3.0</pointCloudCutoffMax>
+                        <distortionK1>0.00000001</distortionK1>
+                        <distortionK2>0.00000001</distortionK2>
+                        <distortionK3>0.00000001</distortionK3>
+                        <distortionT1>0.00000001</distortionT1>
+                        <distortionT2>0.00000001</distortionT2>
+                        <CxPrime>0</CxPrime>
+                        <Cx>0</Cx>
+                        <Cy>0</Cy>
+                        <focalLength>0</focalLength>
+                        <hackBaseline>0</hackBaseline>
+                    </plugin>
+                </sensor>
+            </gazebo>
+            <!-- Gazebo plugin for center RGB camera -->
+
+            <gazebo reference="${camera_name}_rgb_camera_frame">
+                <material>Gazebo/White</material>
+                <sensor type="camera" name="${camera_name}_rgb_camera_frame">
+                    <update_rate>30.0</update_rate>
+                    <camera name="head">
+                        <horizontal_fov>1.3962634</horizontal_fov>
+                        <image>
+                            <width>800</width>
+                            <height>800</height>
+                            <format>R8G8B8</format>
+                        </image>
+                        <clip>
+                            <near>0.02</near>
+                            <far>300</far>
+                        </clip>
+                        <noise>
+                            <type>gaussian</type>
+                            <!-- Noise is sampled independently per pixel on each frame.
+                                 That pixel's noise value is added to each of its color
+                                 channels, which at that point lie in the range [0,1]. -->
+                            <mean>0.0</mean>
+                            <stddev>0.007</stddev>
+                        </noise>
+                    </camera>
+                    <plugin name="rgb_camera_controller" filename="libgazebo_ros_camera.so">
+                        <alwaysOn>true</alwaysOn>
+                        <updateRate>0.0</updateRate>
+                        <cameraName>${camera_name}_rgb_camera</cameraName>
+                        <imageTopicName>image_raw</imageTopicName>
+                        <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+                        <frameName>${camera_name}_rgb_camera_frame</frameName>
+                        <!-- setting hackBaseline to anything but 0.0 will cause a misalignment
+                            between the gazebo sensor image and the frame it is supposed to
+                            be attached to -->
+                        <hackBaseline>0.0</hackBaseline>
+                        <distortionK1>0.0</distortionK1>
+                        <distortionK2>0.0</distortionK2>
+                        <distortionK3>0.0</distortionK3>
+                        <distortionT1>0.0</distortionT1>
+                        <distortionT2>0.0</distortionT2>
+                        <CxPrime>0</CxPrime>
+                        <Cx>0.0</Cx>
+                        <Cy>0.0</Cy>
+                        <focalLength>0.0</focalLength>
+                    </plugin>
+                </sensor>
+            </gazebo>
+        </xacro:if>
+
+    </xacro:macro>
+</robot>

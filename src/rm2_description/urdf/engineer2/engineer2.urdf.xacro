@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="engineer2">
+    <xacro:arg name="load_chassis" default="true"/>
+    <xacro:arg name="load_arm" default="false"/>
+    <xacro:arg name="use_simulation" default="false"/>
+    <xacro:arg name="camera_link" default="camera_link"/>
+    <xacro:arg name="camera_optical_frame" default="camera_optical_frame"/>
+    <xacro:arg name="roller_type" default="realistic"/>
+
+    <xacro:if value="$(arg load_chassis)">
+        <xacro:include filename="$(find rm2_description)/urdf/engineer2/chassis.urdf.xacro"/>
+        <xacro:chassis roller_type="$(arg roller_type)"/>
+    </xacro:if>
+
+    <xacro:if value="$(arg load_arm)">
+        <xacro:include filename="$(find rm2_description)/urdf/engineer2/arm.urdf.xacro"/>
+        <xacro:arm connected_to="base_link" use_simulation="$(arg use_simulation)"/>
+
+        <xacro:include filename="$(find rm2_description)/urdf/engineer2/arm.transmission.xacro"/>
+        <xacro:arm_transmission use_simulation="$(arg use_simulation)"/>
+
+        <xacro:include filename="$(find rm2_description)/urdf/engineer2/gold_only.urdf.xacro"/>
+        <xacro:gold_only connected_to="base_link"/>
+
+        <xacro:include filename="$(find rm2_description)/urdf/engineer2/silver_only.urdf.xacro"/>
+        <xacro:silver connected_to="base_link"/>
+
+       <!-- <xacro:unless value="$(arg use_simulation)">
+           <xacro:include filename="$(find rm2_description)/urdf/common/camera.urdf.xacro"/>
+           <xacro:camera_sensor xyz="-0.0232 0 0.3765" rpy="0. 0. 0." frame_id="$(arg camera_link)" parent="gimbal_lifter"
+                                camera_sim="$(arg use_simulation)" camera_type="hk_camera"/>
+           <xacro:camera_optical_frame xyz="0.0035 0. 0.3765" rpy="-1.570796 0. -1.570796"
+                                       frame_id="$(arg camera_optical_frame)" parent="gimbal_lifter"
+                                       camera_sim="$(arg use_simulation)"/>
+       </xacro:unless> -->
+
+    </xacro:if>
+
+    <ros2_control name="RmEcatHardwareInterface" type="system">
+        <hardware>
+            <plugin>rm2_ecat_ros/RmEcatHardwareInterface</plugin>
+        </hardware>
+
+        <joint name="left_front_wheel_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="right_front_wheel_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="left_back_wheel_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="right_back_wheel_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <!--Other joint wait to added-->
+    </ros2_control>
+
+
+</robot>

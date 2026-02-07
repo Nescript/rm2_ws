@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="drone">
+
+    <xacro:arg name="load_chassis" default="true"/>
+    <xacro:arg name="load_gimbal" default="true"/>
+    <xacro:arg name="load_shooter" default="true"/>
+    <xacro:arg name="camera_link" default="vision_camera_link"/>
+    <xacro:arg name="camera_optical_frame" default="camera_optical_frame"/>
+    <xacro:arg name="use_simulation" default="true"/>
+
+    <xacro:if value="$(arg load_chassis)">
+        <xacro:include filename="$(find rm2_description)/urdf/drone/chassis.urdf.xacro"/>
+        <xacro:include filename="$(find rm2_description)/urdf/drone/camera.urdf.xacro"/>
+
+        <xacro:if value="$(arg load_gimbal)">
+            <xacro:include filename="$(find rm2_description)/urdf/drone/gimbal.urdf.xacro"/>
+            <xacro:include filename="$(find rm2_description)/urdf/drone/gimbal.transmission.urdf.xacro"/>
+            <xacro:include filename="$(find rm2_description)/urdf/common/camera.urdf.xacro"/>
+            <xacro:include filename="$(find rm2_description)/urdf/common/imu.urdf.xacro"/>
+            <xacro:camera_sensor xyz="0.048161 0.074606 -0.039265" rpy="0 0 0" frame_id="$(arg camera_link)"
+                                 parent="pitch"
+                                 camera_type="hk_camera"
+                                 camera_sim="$(arg use_simulation)"/>
+            <xacro:camera_optical_frame xyz="0.048161 0.074606 -0.039265"
+                                        rpy="1.6125345 0.00 1.5936112"
+                                        frame_id="$(arg camera_optical_frame)"
+                                        parent="pitch"
+                                        camera_sim="false"/>
+            <xacro:IMU connected_to="pitch" imu_name="gimbal_imu" xyz="0.05822 0.0 -0.042111" rpy="${pi} 0 ${pi/2}"/>
+            <xacro:if value="$(arg load_shooter)">
+                <xacro:include filename="$(find rm2_description)/urdf/drone/shooter.urdf.xacro"/>
+                <xacro:include filename="$(find rm2_description)/urdf/drone/shooter.transmission.urdf.xacro"/>
+            </xacro:if>
+        </xacro:if>
+    </xacro:if>
+
+    <xacro:if value="$(arg use_simulation)">
+        <gazebo>
+            <plugin name="rm_ros_control" filename="librm_robot_hw_sim.so">
+                <robotNamespace>/</robotNamespace>
+                <robotSimType>rm_gazebo/RmRobotHWSim</robotSimType>
+            </plugin>
+        </gazebo>
+    </xacro:if>
+
+</robot>

@@ -1,0 +1,215 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="dart2">
+    <xacro:arg name="use_simulation" default="false"/>
+
+    <xacro:include filename="$(find rm2_description)/urdf/dart2/gimbal.transmission.urdf.xacro"/>
+    <xacro:include filename="$(find rm2_description)/urdf/dart2/shooter.transmission.urdf.xacro"/>
+
+    <ros2_control name="RmEcatHardwareInterface" type="system">
+        <hardware>
+            <plugin>ros2_control_demo_hardware/GenericSystem</plugin>
+        </hardware>
+
+        <joint name="yaw_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="trigger_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="left_belt_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="right_belt_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="range_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="rotate_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="left_clamp_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="mid_clamp_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="right_clamp_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+    </ros2_control>
+
+    <link name="base_link"/>
+
+    <link name="yaw"/>
+
+    <joint name="yaw_joint" type="revolute">
+        <origin xyz="0 0 0.184"
+                rpy="0 0 0"/>
+        <dynamics damping="0.0" friction="0.1"/>
+        <limit effort="1440" velocity="13.82" lower="0.0" upper="0.27"/>
+        <!--        0.0 0.2673-->
+        <safety_controller k_velocity="1000"
+                           k_position="100"
+                           soft_lower_limit="0.0"
+                           soft_upper_limit="0.27"/>
+        <parent link="base_link"/>
+        <child link="yaw"/>
+        <axis xyz="0 0 1"/>
+    </joint>
+
+    <link name="trigger"/>
+
+    <joint name="trigger_joint" type="revolute">
+        <origin xyz="-0.064 0 0" rpy="0 0 0"/>
+        <dynamics damping="0.0" friction="0.01"/>
+        <limit effort="4.4" velocity="35.758" lower="-100.0" upper="100.0"/>
+        <safety_controller k_velocity="1000"
+                           k_position="100"
+                           soft_lower_limit="-100.0"
+                           soft_upper_limit="100.0"/>
+        <parent link="base_link"/>
+        <child link="trigger"/>
+        <axis xyz="0 0 1 "/>
+
+    </joint>
+
+    <link name="left_belt"/>
+
+    <link name="right_belt"/>
+
+    <joint name="left_belt_joint" type="revolute">
+        <origin xyz="-0.06 0 0 " rpy="0 0 0"/>
+        <dynamics damping="0.0" friction="0.1"/>
+        <limit effort="10.0" velocity="48.0" lower="0.0" upper="23.4"/>
+        <safety_controller  k_velocity="1000"
+                            k_position="100"
+                            soft_lower_limit="0.0"
+                            soft_upper_limit="23.4"/>
+
+        <parent link="base_link"/>
+        <child link="left_belt"/>
+        <axis xyz="0 1 0 "/>
+    </joint>
+
+    <joint name="right_belt_joint" type="revolute">
+        <origin xyz="-0.06 0 0.191 " rpy="0 0 0"/>
+        <dynamics damping="0.0" friction="0.1"/>
+        <limit effort="10.0" velocity="48.0" lower="0.0" upper="23.4"/>
+        <safety_controller  k_velocity="1000"
+                            k_position="100"
+                            soft_lower_limit="0.0"
+                            soft_upper_limit="23.4"/>
+
+        <parent link="base_link"/>
+        <child link="right_belt"/>
+        <axis xyz="0 1 0 "/>
+    </joint>
+
+    <link name="range"/>
+
+    <joint name="range_joint" type="revolute">
+        <origin xyz="-0.06  0 0.191 " rpy="0 0 0"/>
+        <dynamics damping="0.0" friction="0.1"/>
+        <limit effort="1440" velocity="13.82" lower="0.0" upper="0.387"/>
+        <safety_controller  k_velocity="1000"
+                            k_position="100"
+                            soft_lower_limit="0.0"
+                            soft_upper_limit="0.387"/>
+
+        <parent link="base_link"/>
+        <child link="range"/>
+        <axis xyz="0 1 0 "/>
+    </joint>
+
+    <link name="rotate"/>
+
+    <joint name="rotate_joint" type="revolute">
+        <origin xyz="-0.06  0 0.191 " rpy="0 0 0"/>
+        <dynamics damping="0.0" friction="0.1"/>
+        <limit effort="1.2" velocity="31" lower="-1e10" upper="1e10"/>
+        <parent link="base_link"/>
+        <child link="rotate"/>
+        <axis xyz="0 0 1 "/>
+    </joint>
+
+    <link name="left_clamp"/>
+
+    <link name="mid_clamp"/>
+
+    <link name="right_clamp"/>
+
+    <joint name="left_clamp_joint" type="revolute">
+        <origin xyz="-0.064 0 0" rpy="0 0 0"/>
+        <dynamics damping="0.0" friction="0.01"/>
+        <limit effort="4.4" velocity="35.758" lower="-100.0" upper="100.0"/>
+        <safety_controller k_velocity="1000"
+                           k_position="100"
+                           soft_lower_limit="-100.0"
+                           soft_upper_limit="100.0"/>
+        <parent link="rotate"/>
+        <child link="left_clamp"/>
+        <axis xyz="0 0 1 "/>
+    </joint>
+
+    <joint name="mid_clamp_joint" type="revolute">
+        <origin xyz="-0.064 0 0" rpy="0 0 0"/>
+        <dynamics damping="0.0" friction="0.01"/>
+        <limit effort="4.4" velocity="35.758" lower="-100.0" upper="100.0"/>
+        <safety_controller k_velocity="1000"
+                           k_position="100"
+                           soft_lower_limit="-100.0"
+                           soft_upper_limit="100.0"/>
+        <parent link="rotate"/>
+        <child link="mid_clamp"/>
+        <axis xyz="0 0 1 "/>
+    </joint>
+
+    <joint name="right_clamp_joint" type="revolute">
+        <origin xyz="-0.064 0 0" rpy="0 0 0"/>
+        <dynamics damping="0.0" friction="0.01"/>
+        <limit effort="4.4" velocity="35.758" lower="-100.0" upper="100.0"/>
+        <safety_controller k_velocity="1000"
+                           k_position="100"
+                           soft_lower_limit="-100.0"
+                           soft_upper_limit="100.0"/>
+        <parent link="rotate"/>
+        <child link="right_clamp"/>
+        <axis xyz="0 0 1 "/>
+    </joint>
+</robot>

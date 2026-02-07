@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="hero">
+
+    <xacro:arg name="load_chassis" default="true"/>
+    <xacro:arg name="load_gimbal" default="false"/>
+    <xacro:arg name="load_shooter" default="false"/>
+    <xacro:arg name="camera_link" default="camera_link"/>
+    <xacro:arg name="camera_optical_frame" default="camera_optical_frame"/>
+    <xacro:arg name="camera2_optical_frame" default="camera2_optical_frame"/>
+    <xacro:arg name="use_simulation" default="true"/>
+    <xacro:arg name="roller_type" default="realistic"/>
+
+    <xacro:if value="$(arg load_chassis)">
+        <xacro:include filename="$(find rm2_description)/urdf/hero2/chassis.urdf.xacro"/>
+        <xacro:chassis roller_type="$(arg roller_type)"/>
+        <xacro:if value="$(arg load_gimbal)">
+            <xacro:include filename="$(find rm2_description)/urdf/hero2/gimbal.urdf.xacro"/>
+            <xacro:include filename="$(find rm2_description)/urdf/hero2/gimbal.transmission.urdf.xacro"/>
+            <xacro:include filename="$(find rm2_description)/urdf/common/imu.urdf.xacro"/>
+            <xacro:include filename="$(find rm2_description)/urdf/common/camera.urdf.xacro"/>
+            <xacro:include filename="$(find rm2_description)/urdf/common/livox_mid360.urdf.xacro"/>
+            <xacro:camera_sensor xyz="0.26555 0.0 -0.05775" rpy="${pi} 0.069813 -0.02" frame_id="$(arg camera_link)"
+                                 camera_type="hk_camera"
+                                 parent="pitch"
+                                 camera_sim="$(arg use_simulation)"/>
+            <xacro:camera_optical_frame xyz="0.2688 0.000 -0.054787" rpy="-1.6789075 0.0547913 -1.5507212"
+                                        frame_id="$(arg camera_optical_frame)" parent="pitch"
+                                        camera_sim="$(arg use_simulation)"/>
+            <xacro:camera_optical_frame xyz="0.2688 0.000 -0.054787" rpy="-1.6889075 0.0227913 -1.6047212"
+                                        frame_id="$(arg camera2_optical_frame)" parent="pitch"
+                                        camera_sim="$(arg use_simulation)"/>
+            <xacro:IMU connected_to="pitch" imu_name="gimbal_imu" xyz="-0.029424 0.0 0.048089"
+                       rpy="-0.02 -0.02 ${pi/2+0.02}"/>
+            <xacro:livox_mid360 connected_to="yaw" simulation="$(arg use_simulation)" lidar_name="livox_frame"
+                                xyz="-0.136958 0.173165 0.103288" rpy="${-45/180*pi} 0 0"/>
+            <xacro:if value="$(arg load_shooter)">
+                <xacro:include filename="$(find rm2_description)/urdf/hero2/shooter.urdf.xacro"/>
+                <xacro:include filename="$(find rm2_description)/urdf/hero2/shooter.transmission.urdf.xacro"/>
+            </xacro:if>
+        </xacro:if>
+    </xacro:if>
+
+    <ros2_control name="RmEcatHardwareInterface" type="system">
+        <hardware>
+            <plugin>rm2_ecat_ros/RmEcatHardwareInterface</plugin>
+        </hardware>
+
+        <joint name="left_front_wheel_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="right_front_wheel_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="left_back_wheel_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="right_back_wheel_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <!--Other joint wait to added-->
+    </ros2_control>
+    <!-- <xacro:if value="$(arg use_simulation)">
+        <gazebo>
+            <plugin name="rm_ros_control" filename="librm_robot_hw_sim.so">
+                <robotNamespace>/</robotNamespace>
+                <robotSimType>rm_gazebo/RmRobotHWSim</robotSimType>
+            </plugin>
+        </gazebo>
+    </xacro:if> -->
+
+</robot>

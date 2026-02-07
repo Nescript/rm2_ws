@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <xacro:macro name="gold_only" params="connected_to">
+        <xacro:property name="pusher_upper_limit" value="0."/>
+        <xacro:property name="pusher_lower_limit" value="-0.51"/>
+        <xacro:property name="pusher_velocity" value="1.929"/>
+        <xacro:property name="pusher_effort" value="129.6"/>
+
+        <xacro:property name="lifter_upper_limit" value="0.065"/>
+        <xacro:property name="lifter_lower_limit" value="0"/>
+        <xacro:property name="lifter_velocity" value="0.54"/>
+        <xacro:property name="lifter_effort" value="55.56"/>
+
+        <link name="gold_pusher_link">
+            <visual>
+                <origin xyz="0. 0. 0." rpy="0 0 0"/>
+                <geometry>
+                    <mesh filename="package://rm2_description/meshes/engineer2/gold_pusher_link.stl"/>
+                </geometry>
+            </visual>
+            <inertial>
+                <mass value="0.790719"/>
+                <origin xyz="-0.087844 0.059541 0.340042"/>
+                <inertia ixx="1.440e-2" ixy="-5.878e-4" ixz="6.9158662e-5" iyy="7.636e-4" iyz="9.093e-4" izz="1.434e-2"/>
+            </inertial>
+            <collision>
+                <origin xyz="0. 0. 0." rpy="0. 0. 0."/>
+                <geometry>
+                    <mesh filename="package://rm2_description/meshes/engineer2/gold_pusher_link.stl"/>
+                </geometry>
+            </collision>
+        </link>
+
+        <link name="gold_lifter_link">
+            <visual>
+                <origin xyz="0. 0. 0." rpy="0 0 0"/>
+                <geometry>
+                    <mesh filename="package://rm2_description/meshes/engineer2/gold_lifter_link.stl"/>
+                </geometry>
+            </visual>
+            <inertial>
+                <mass value="0.140303"/>
+                <origin xyz="-0.085904 -0.127663 0.344707"/>
+                <inertia ixx="1.419e-4" ixy="2.34146e-7" ixz="3.380927e-6" iyy="8.3019511e-5" iyz="-1.6655296e-5" izz="1.005e-4"/>
+            </inertial>
+            <collision>
+                <origin xyz="0. 0. 0." rpy="0. 0. 0."/>
+                <geometry>
+                    <mesh filename="package://rm2_description/meshes/engineer2/gold_lifter_link.stl"/>
+                </geometry>
+            </collision>
+        </link>
+
+        <joint name="gold_pusher_joint" type="prismatic">
+            <parent link="${connected_to}"/>
+            <child link="gold_pusher_link"/>
+            <origin xyz="-0.085 0. 0.343" rpy="0 0 0"/>
+            <axis xyz="0 1 0"/>
+            <limit lower="${pusher_lower_limit}" upper="${pusher_upper_limit}"
+                   velocity="${pusher_velocity}" effort="${pusher_effort}"/>
+            <dynamics damping="0.0" friction="0.1"/>
+        </joint>
+
+        <joint name="gold_lifter_joint" type="prismatic">
+            <parent link="gold_pusher_link"/>
+            <child link="gold_lifter_link"/>
+            <origin xyz="-0. -0.0985 0.04695" rpy="0 0 0"/>
+            <axis xyz="0 0 1"/>
+            <limit lower="${lifter_lower_limit}" upper="${lifter_upper_limit}"
+                   velocity="${lifter_velocity}" effort="${lifter_effort}"/>
+            <dynamics damping="0.0" friction="0.1"/>
+        </joint>
+
+        <transmission name="trans_gold_pusher_joint">
+            <type>transmission_interface/SimpleTransmission</type>
+            <actuator name="gold_pusher_joint_motor">
+                <mechanicalReduction>492.488</mechanicalReduction>
+                            <!--19/(2*0.0192898)-->
+            </actuator>
+            <joint name="gold_pusher_joint">
+                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+                <offset>0</offset>
+            </joint>
+        </transmission>
+
+        <transmission name="trans_gold_lifter_joint">
+            <type>transmission_interface/SimpleTransmission</type>
+            <actuator name="gold_lifter_joint_motor">
+                <mechanicalReduction>2000</mechanicalReduction>
+<!--                36/0.018-->
+            </actuator>
+            <joint name="gold_lifter_joint">
+                <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+                <offset>0</offset>
+            </joint>
+        </transmission>
+    </xacro:macro>
+</robot>

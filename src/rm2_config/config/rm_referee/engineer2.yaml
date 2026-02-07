@@ -1,0 +1,33 @@
+rm_referee:
+  robot_type: engineer2
+  send_ui_queue_delay: 0.05
+  add_ui_frequency: 0.5
+  add_ui_max_times: 3
+  dbus_topic: "/rm_ecat_hw/dbus"
+  interactive_data:
+  ui:
+    trigger_change:
+      - name: "servo_mode"
+        config: { start_position: [ 50, 800 ], size: 15, width: 2, title: "mode:" }
+      - name: "visualize_state"
+        data:
+          - { config: { type: "circle", width: 8, radius: 30, start_position: [ 160, 740 ], color: "pink" } } #main
+          - { config: { type: "circle", width: 4, radius: 20, start_position: [ 40, 650 ], color: "pink" } } #s1
+          - { config:  { type: "circle", width: 4, radius: 20, start_position: [ 100, 650 ], color: "pink" } } #s2
+          - { config:  { type: "circle", width: 4, radius: 20, start_position: [ 160, 650 ], color: "pink" } } #s3
+          - { config:  { type: "circle", width: 4, radius: 20, start_position: [ 40, 740 ], color: "pink" } } #gold
+          - { config:  { type: "circle", width: 3, radius: 10, start_position: [ 100, 730 ], color: "pink" } } #silver pump
+    fixed:
+      - name: "car_line_left"
+        config: { type: "line", width: 2, color: "orange",
+                  start_position: [ 526, 190 ], end_position: [ 926, 504 ] }
+      - name: "car_line_right"
+        config: { type: "line", width: 2, color: "orange",
+                  start_position: [ 1049, 161 ], end_position: [ 941, 501 ] }
+    flash:
+      - name: "customize_display"
+        data:
+          - { flag: 1, config: { type: "line", width: 3, color: "orange",start_position: [ 1139, 889 ], end_position: [ 1179, 610 ] } }#BI
+          - { flag: 1, config: { type: "line", width: 3, color: "orange",start_position: [ 1223, 17 ], end_position: [ 1212, 317 ] } }
+#          - { flag: 2, config: { type: "line", width: 2, color: "orange",start_position: [ 1047, 457 ], end_position: [ 1245, 245 ] } }
+#          - { flag: 2, config: { type: "line", width: 2, color: "orange",start_position: [ 887, 456 ], end_position: [ 626, 230 ] } }

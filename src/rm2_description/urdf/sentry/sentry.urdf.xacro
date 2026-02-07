@@ -1,0 +1,134 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="sentry">
+
+    <xacro:arg name="load_chassis" default="true"/>
+    <xacro:arg name="load_gimbal" default="false"/>
+    <xacro:arg name="load_shooter" default="false"/>
+    <xacro:arg name="camera_link" default="camera_link"/>
+    <xacro:arg name="back_camera_link" default="back_camera_link"/>
+    <xacro:arg name="camera_optical_frame" default="camera_optical_frame"/>
+    <xacro:arg name="back_camera_optical_frame" default="back_camera_optical_frame"/>
+    <xacro:arg name="use_simulation" default="false"/>
+    <xacro:arg name="roller_type" default="realistic"/>
+
+    <xacro:if value="$(arg load_chassis)">
+        <xacro:include filename="$(find rm2_description)/urdf/sentry/chassis.urdf.xacro"/>
+        <xacro:chassis roller_type="$(arg roller_type)"/>
+
+        <xacro:if value="$(arg load_gimbal)">
+            <xacro:include filename="$(find rm2_description)/urdf/sentry/gimbal.urdf.xacro"/>
+            <xacro:include filename="$(find rm2_description)/urdf/sentry/gimbal.transmission.urdf.xacro"/>
+
+            <xacro:include filename="$(find rm2_description)/urdf/common/imu.urdf.xacro"/>
+            <xacro:include filename="$(find rm2_description)/urdf/common/camera.urdf.xacro"/>
+            <xacro:include filename="$(find rm2_description)/urdf/common/livox_mid360.urdf.xacro"/>
+            <xacro:include filename="$(find rm2_description)/urdf/common/lidar2d.urdf.xacro"/>
+            <xacro:camera_sensor xyz="0.019622 0 0.0681" rpy="0 0 0" frame_id="$(arg camera_link)"
+                                 camera_type="hk_camera"
+                                 parent="pitch"
+                                 camera_sim="$(arg use_simulation)"/>
+            <xacro:camera_optical_frame xyz="0.019622 0 0.0681"
+                                        rpy="-1.53606 0 -1.5697212"
+                                        frame_id="$(arg camera_optical_frame)"
+                                        parent="pitch"
+                                        camera_sim="false"/>
+            <xacro:camera_sensor xyz="-0.057452 0.067 0.035482" rpy="0 0 0" frame_id="$(arg back_camera_link)"
+                                 camera_type="galaxy_camera" parent="yaw"
+                                 camera_sim="$(arg use_simulation)"/>
+            <!--            <xacro:camera_optical_frame xyz="-0.0708 0 0.1294"-->
+            <!--                                        rpy="-1.6307963 0 1.5707963"-->
+            <xacro:camera_optical_frame xyz="-0.057452 0.067 0.035482"
+                                        rpy="${pi/2} 0 -${pi/2}"
+                                        frame_id="$(arg back_camera_optical_frame)"
+                                        parent="yaw"
+                                        camera_sim="false"/>
+            <xacro:IMU connected_to="pitch" imu_name="gimbal_imu"
+                       xyz="-0.01181 0 0.0426"
+                       rpy="0.023 -0.01 -${pi/2}"/>
+            <!--            0.05 0 -${pi/2}"   0.05 0.01 -1.65-->
+            <xacro:livox_mid360 connected_to="yaw" simulation="$(arg use_simulation)" lidar_name="livox_frame"
+                                xyz="-0.046952 0.12769 0.086387" rpy="0.789 0.009 -3.1415926"/>
+            <!--       0.976     -3.142898 -3.140288                //   0.776 -0.02 -3.1415926-->
+            <xacro:lidar2d connected_to="yaw" simulation="$(arg use_simulation)" lidar_name="laser"
+                           xyz="-0.047347 -0.094 0.03285" rpy="0.0 0.0 0.0"/>
+            <xacro:if value="$(arg load_shooter)">
+                <xacro:include filename="$(find rm2_description)/urdf/sentry/shooter.urdf.xacro"/>
+                <xacro:include filename="$(find rm2_description)/urdf/sentry/shooter.transmission.urdf.xacro"/>
+            </xacro:if>
+        </xacro:if>
+    </xacro:if>
+
+    <ros2_control name="RmEcatHardwareInterface" type="system">
+        <hardware>
+            <plugin>rm2_ecat_ros/RmEcatHardwareInterface</plugin>
+        </hardware>
+
+        <joint name="left_front_wheel_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="right_front_wheel_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="left_back_wheel_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="right_back_wheel_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="left_front_pivot_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="right_front_pivot_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="left_back_pivot_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <joint name="right_back_pivot_joint">
+            <command_interface name="effort"/>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+            <state_interface name="effort"/>
+        </joint>
+
+        <!--Other joint wait to added-->
+    </ros2_control>
+
+    <!-- <xacro:if value="$(arg use_simulation)">
+        <gazebo>
+            <plugin name="rm_ros_control" filename="librm_robot_hw_sim.so">
+                <robotNamespace>/</robotNamespace>
+                <robotSimType>rm_gazebo/RmRobotHWSim</robotSimType>
+            </plugin>
+        </gazebo>
+    </xacro:if> -->
+
+</robot>

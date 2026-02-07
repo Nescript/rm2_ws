@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<robot>
+
+    <transmission name="trans_yaw_joint">
+        <type>transmission_interface/SimpleTransmission</type>
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <joint name="yaw_joint" role="actuated">
+            <mechanical_reduction>-1</mechanical_reduction>
+            <offset>0.2795</offset>
+        </joint>
+        <actuator name="yaw_joint_motor" role="actuated">
+            <mechanical_reduction>-1</mechanical_reduction>
+        </actuator>
+    </transmission>
+
+    <transmission name="trans_pitch_joint">
+        <type>transmission_interface/SimpleTransmission</type>
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <joint name="pitch_joint" role="actuated">
+            <mechanical_reduction>-1</mechanical_reduction>
+            <offset>-1.65</offset>
+        </joint>
+        <actuator name="pitch_joint_motor" role="actuated">
+            <mechanical_reduction>-1</mechanical_reduction>
+        </actuator>
+    </transmission>
+
+    <transmission name="trans_scope_joint">
+        <type>transmission_interface/SimpleTransmission</type>
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <joint name="scope_joint" role="actuated">
+            <mechanical_reduction>-36</mechanical_reduction>
+            <offset>0.0</offset>
+        </joint>
+        <actuator name="scope_joint_motor" role="actuated">
+            <mechanical_reduction>-36</mechanical_reduction>
+        </actuator>
+    </transmission>
+
+    <transmission name="trans_image_transmission_joint">
+        <type>transmission_interface/SimpleTransmission</type>
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <joint name="image_transmission_joint" role="actuated">
+            <mechanical_reduction>3</mechanical_reduction>
+            <offset>0.0</offset>
+        </joint>
+        <actuator name="image_transmission_joint_motor" role="actuated">
+            <mechanical_reduction>3</mechanical_reduction>
+        </actuator>
+    </transmission>
+
+</robot>

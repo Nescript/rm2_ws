@@ -1,0 +1,29 @@
+<launch>
+    <arg name="robot_type" default="$(env ROBOT_TYPE)" doc="Robot type [standard, hero, engineer, engineer2]"/>
+    <arg name="ekf" default="false"/>
+    <arg name="odom_tf" default="true"/>
+    <arg name="wheeled_balance" default="false"/>
+    <arg name="legged_wheel_balance" default="false"/>
+
+    <rosparam file="$(find rm_config)/config/rm_controllers/$(arg robot_type).yaml" command="load"/>
+    <rosparam file="$(find rm_config)/config/rm_manual/$(arg robot_type).yaml" command="load"/>
+
+    <group if="$(arg wheeled_balance)">
+        <param name="taskFile" value="$(find rm_legged_balance_control)/config/mpc/task.info"/>
+        <param name="libFolder" value="$(find rm_legged_balance_control)/auto_generated"/>
+    </group>
+
+    <group if="$(arg legged_wheel_balance)">
+        <param name="taskFile" value="$(find legged_wheel_robot_control)/config/mpc/task.info"/>
+        <param name="referenceFile" value="$(find legged_wheel_robot_control)/config/command/reference.info"/>
+        <param name="urdfFile" value="/tmp/legged_wheel_robot/legged_wheel_balance.urdf"/>
+        <param name="urdfFile_rbd" value="/tmp/legged_wheel_robot/legged_wheel_balance_has_wheel.urdf"/>
+    </group>
+
+    <node name="rm_manual" pkg="rm_manual" type="rm_manual" respawn="false"/>
+
+    <node if="$(arg ekf)" pkg="robot_localization" type="ekf_localization_node" name="ekf_localization"
+          clear_params="true">
+        <rosparam command="load" file="$(find rm_chassis_controllers)/config/localization.yaml"/>
+    </node>
+</launch>

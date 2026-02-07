@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot>
+
+    <transmission name="trans_yaw_joint">
+        <type>transmission_interface/SimpleTransmission</type>
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <joint name="yaw_joint" role="actuated">
+            <mechanical_reduction>1200</mechanical_reduction>
+            <offset>0.0</offset>
+        </joint>
+        <actuator name="yaw_joint_motor" role="actuated">
+            <mechanical_reduction>1200</mechanical_reduction>
+        </actuator>
+    </transmission>
+
+</robot>

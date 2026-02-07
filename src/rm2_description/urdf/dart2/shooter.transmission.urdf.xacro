@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot>
+
+    <transmission name="trans_trigger_joint">
+        <type>transmission_interface/SimpleTransmission</type>
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <joint name="trigger_joint" role="actuated">
+            <mechanical_reduction>36</mechanical_reduction>
+        </joint>
+        <actuator name="trigger_joint_motor" role="actuated">
+            <mechanical_reduction>36</mechanical_reduction>
+        </actuator>
+    </transmission>
+
+    <transmission name="trans_left_belt_joint">
+        <type>transmission_interface/SimpleTransmission</type>
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <joint name="left_belt_joint" role="actuated">
+            <mechanical_reduction>36</mechanical_reduction>
+        </joint>
+        <actuator name="left_belt_joint_motor" role="actuated">
+            <mechanical_reduction>36</mechanical_reduction>
+        </actuator>
+    </transmission>
+
+    <transmission name="trans_right_belt_joint">
+        <type>transmission_interface/SimpleTransmission</type>
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <joint name="right_belt_joint" role="actuated">
+            <mechanical_reduction>-36</mechanical_reduction>
+        </joint>
+        <actuator name="right_belt_joint_motor" role="actuated">
+            <mechanical_reduction>-36</mechanical_reduction>
+        </actuator>
+    </transmission>
+
+    <transmission name="trans_range_joint">
+        <type>transmission_interface/SimpleTransmission</type>
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <joint name="range_joint" role="actuated">
+            <mechanical_reduction>1200</mechanical_reduction>
+            <offset>0.0</offset>
+        </joint>
+        <actuator name="range_joint_motor" role="actuated">
+            <mechanical_reduction>1200</mechanical_reduction>
+        </actuator>
+    </transmission>
+
+    <transmission name="trans_rotate_joint">
+        <type>transmission_interface/SimpleTransmission</type>
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <joint name="rotate_joint" role="actuated">
+            <mechanical_reduction>1</mechanical_reduction>
+            <offset>0.0</offset>
+        </joint>
+        <actuator name="rotate_joint_motor" role="actuated">
+            <mechanical_reduction>1</mechanical_reduction>
+        </actuator>
+    </transmission>
+
+    <transmission name="trans_left_clamp_joint">
+        <type>transmission_interface/SimpleTransmission</type>
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <joint name="left_clamp_joint" role="actuated">
+            <mechanical_reduction>36</mechanical_reduction>
+            <offset>0.0</offset>
+        </joint>
+        <actuator name="left_clamp_joint_motor" role="actuated">
+            <mechanical_reduction>36</mechanical_reduction>
+        </actuator>
+    </transmission>
+
+    <transmission name="trans_mid_clamp_joint">
+        <type>transmission_interface/SimpleTransmission</type>
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <joint name="mid_clamp_joint" role="actuated">
+            <mechanical_reduction>36</mechanical_reduction>
+            <offset>0.0</offset>
+        </joint>
+        <actuator name="mid_clamp_joint_motor" role="actuated">
+            <mechanical_reduction>36</mechanical_reduction>
+        </actuator>
+    </transmission>
+
+    <transmission name="trans_right_clamp_joint">
+        <type>transmission_interface/SimpleTransmission</type>
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <joint name="right_clamp_joint" role="actuated">
+            <mechanical_reduction>36</mechanical_reduction>
+            <offset>0.0</offset>
+        </joint>
+        <actuator name="right_clamp_joint_motor" role="actuated">
+            <mechanical_reduction>36</mechanical_reduction>
+        </actuator>
+    </transmission>
+</robot>

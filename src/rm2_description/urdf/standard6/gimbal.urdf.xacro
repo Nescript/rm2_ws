@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:property name="threshold" value="0.1"/>
+    <xacro:property name="pitch_lower_limit" value="-0.5921"/>
+    <xacro:property name="pitch_upper_limit" value="0.356"/>
+
+    <link name="yaw">
+        <inertial>
+            <mass value="2.77894"/>
+            <origin xyz="-0.005264 0.014082 0.041543"/>
+            <inertia ixx="1.805e-2" ixy="3.682e-3" ixz="8.882e-3" iyy="2.496e-2"
+                     iyz="-3.791e-3" izz="1.933e-2"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://rm2_description/meshes/standard/yaw.stl" scale="1 1 1"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://rm2_description/meshes/standard/yaw.stl" scale="1 1 1"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="yaw_joint" type="revolute">
+        <origin xyz="0 0 0.1635"
+                rpy="0 0 0"/>
+        <dynamics damping="0.0" friction="0.1"/>
+        <limit effort="1.2" velocity="31" lower="-1e10" upper="1e10"/>
+        <parent link="base_link"/>
+        <child link="yaw"/>
+        <axis xyz="0 0 1"/>
+    </joint>
+
+    <link name="supply_frame"/>
+    <joint name="supply_joint" type="fixed">
+        <origin xyz="0 0 0" rpy="0 0 ${pi/3}"/>
+        <parent link="yaw"/>
+        <child link="supply_frame"/>
+    </joint>
+
+    <link name="pitch">
+        <inertial>
+            <mass value="1.435273"/>
+            <origin xyz="0.039607 -0.001185 0.032328"/>
+            <inertia ixx="2.094e-3" ixy="-6.7890829e-5" ixz="7.965e-4" iyy="7.464e-3"
+                     iyz="4.52892e-6" izz="7.116e-3"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://rm2_description/meshes/standard/standard6_pitch.stl" scale="1 1 1"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://rm2_description/meshes/standard/standard6_pitch.stl" scale="1 1 1"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="pitch_joint" type="revolute">
+        <origin xyz="0 0 0.101" rpy="0 0 0"/>
+        <dynamics damping="0.0" friction="0.1"/>
+        <limit effort="1.2" velocity="31" lower="${pitch_lower_limit}" upper="${pitch_upper_limit}"/>
+        <safety_controller k_position="100" k_velocity="0.08"
+                           soft_lower_limit="${pitch_lower_limit+threshold}"
+                           soft_upper_limit="${pitch_upper_limit-threshold}"/>
+        <parent link="yaw"/>
+        <child link="pitch"/>
+        <axis xyz="0 1 0 "/>
+    </joint>
+
+</robot>

@@ -1,0 +1,134 @@
+rm_manual:
+  robot_type: "standard"
+  dbus_topic: "/rm_ecat_hw/dbus"
+  chassis_calibrate_motor: [ ]
+  gimbal_calibrate_motor: [ ]
+  shooter_calibrate_motor: [ "cover_joint_motor", "trigger_joint_motor" ]
+  buff_gyro_rotate_limit: 6.0
+  chassis:
+    topic: "/cmd_chassis"
+    accel_x:
+      - [ 50.0,99.0 ]
+    accel_y:
+      - [ 50.0,99.0 ]
+    accel_z:
+      - [ 50.0,99.0 ]
+    safety_power: 50
+    capacitor_threshold: 0.3
+    enable_cap_gyro_threshold: 0.8
+    disable_cap_gyro_threshold: 0.7
+    charge_power: 20
+    extra_power: 20
+    standard_power: 120
+    burst_power: 220
+    max_power_limit: 70
+    buffer_threshold: 10
+    power_gain: 0.0
+    total_burst_time: 20
+    is_new_capacitor: true
+  vel:
+    topic: "/cmd_vel"
+    power_limit_topic: "/cmd_chassis"
+    max_linear_x:
+      - [ 50.0,2.1 ]
+      - [ 80.0,2.8 ]
+      - [ 100.0,3.2 ]
+      - [ 220.0,5.2 ]
+    max_linear_y:
+      - [ 50.0,2.1 ]
+      - [ 80.0,2.8 ]
+      - [ 100.0,3.2 ]
+      - [ 220.0,5.2 ]
+    max_angular_z:
+      - [ 50.0,12.0 ]
+      - [ 80.0,15.0 ]
+      - [ 100.0,18.0 ]
+      - [ 220.0,20.0 ]
+    gyro_move_reduction: 0.9
+    gyro_rotate_reduction: 0.25
+    sin_gyro_base_scale: 0.9
+    sin_gyro_amplitude: 0.1
+    sin_gyro_period: 1.5
+    sin_gyro_phase: 0.0
+  gimbal:
+    topic: "/controllers/gimbal_controller/command"
+    max_yaw_vel: 6.28
+    max_pitch_vel: 5.0
+    time_constant_rc: 0.02
+    time_constant_pc: 0.08
+    gimbal_scale: 10.0
+    track_timeout: 0.5
+    eject_sensitivity: 0.5
+    finish_turning_threshold: 2.9
+    pass_hole_angle: 0.1286
+    target_cost_function:
+      k_pos: 1.0
+      k_vel: 1.0
+      k_hp: 1.0
+      k_freq: 1.0
+      timeout: 0.05
+  shooter:
+    topic: "/controllers/shooter_controller/command"
+    track_armor_error_tolerance: 0.12
+    untrack_armor_error_tolerance: 0.04
+    track_buff_error_tolerance: 0.12
+    max_track_target_vel: 10.5
+    target_acceleration_tolerance: 99.
+    speed_10m_per_speed: 23.5
+    speed_15m_per_speed: 23.5
+    speed_16m_per_speed: 23.5
+    speed_18m_per_speed: 23.5
+    speed_30m_per_speed: 23.5
+    wheel_speed_15: 700.0
+    wheel_speed_18: 700.0
+    wheel_speed_30: 700.0
+    wheel_speed_gain: 0.5
+    extra_wheel_speed_once: 5.0
+    speed_oscillation: 1.0
+    auto_wheel_speed: false
+    heat_limit:
+      low_shoot_frequency: 20
+      high_shoot_frequency: 20
+      burst_shoot_frequency: 20
+      minimal_shoot_frequency: 1.75
+      safe_shoot_frequency: 3
+      heat_coeff: 20.0
+      use_local_heat_: false
+      type: "ID1_17MM"
+  cover:
+    topic: "/controllers/cover_controller/command"
+    on_pos: 1.94
+    off_pos: 0.013
+  buff_switch:
+    fail_limit: 10
+    service_name: "/buff_status_switch"
+  buff_type_switch:
+    fail_limit: 10
+    service_name: "/forecast/status_switch"
+  detection_switch:
+    fail_limit: 10
+    service_name: "/Processor/status_switch"
+  exposure_switch:
+    fail_limit: 10
+    service_name: "/exposure_status_switch"
+
+  controllers_list:
+    state_controllers:
+      - controllers/joint_state_controller
+      - controllers/robot_state_controller
+    main_controllers:
+      - controllers/chassis_controller
+      - controllers/orientation_controller
+      - controllers/gimbal_controller
+      - controllers/shooter_controller
+    calibration_controllers:
+      - controllers/trigger_calibration_controller
+
+  gimbal_calibration:
+  shooter_calibration:
+    - start_controllers:
+        - controllers/trigger_calibration_controller
+      stop_controllers:
+        - controllers/shooter_controller
+      services_name:
+        - /controllers/trigger_calibration_controller/is_calibrated

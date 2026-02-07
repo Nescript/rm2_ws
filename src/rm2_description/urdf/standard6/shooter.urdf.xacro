@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="$(find rm2_description)/urdf/common/friction.urdf.xacro"/>
+    <!--    <xacro:include filename="$(find rm2_description)/urdf/standard/gimbal.urdf.xacro"/>-->
+
+
+    <xacro:property name="wheel_offset_x" value="0.047"/>
+    <xacro:property name="wheel_offset_y" value="0.0365"/>
+    <xacro:property name="wheel_offset_z" value="0"/>
+
+
+    <xacro:friction_wheel prefixs="left" connected_to="pitch"
+                          wheel_x_offset="${wheel_offset_x}" wheel_y_offset="${wheel_offset_y}"
+                          wheel_z_offset="${wheel_offset_z}"/>
+
+    <xacro:friction_wheel prefixs="right" connected_to="pitch"
+                          wheel_x_offset="${wheel_offset_x}" wheel_y_offset="${-wheel_offset_y}"
+                          wheel_z_offset="${wheel_offset_z}"/>
+
+
+    <link name="trigger">
+        <inertial>
+            <mass value="1.394263"/>
+            <origin xyz="0.02488 -0.000051 0.09616"/>
+            <inertia ixx="1.336e-3" ixy="-1.0432055e-5" ixz="-6.693e-4" iyy="2.934e-3"
+                     iyz="-4.659206e-6" izz="2.872e-3"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://rm2_description/meshes/standard/trigger.stl" scale="1 1 1"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://rm2_description/meshes/standard/trigger.stl" scale="1 1 1"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="trigger_joint" type="revolute">
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <dynamics damping="0.0" friction="0.01"/>
+        <limit effort="7.2" velocity="35" lower="-1e16" upper="1e16"/>
+        <parent link="base_link"/>
+        <child link="trigger"/>
+        <axis xyz="0 0 1 "/>
+
+    </joint>
+
+    <link name="cover">
+        <inertial>
+            <mass value="0.0246"/>
+            <origin xyz="-0.064 -0.000225 0.02447"/>
+            <inertia ixx="5.40e-5" ixy="-1.30e-7" ixz="5.13e-5" iyy="1.54e-4" iyz="4.7e-8" izz="1.688e-4"/>
+        </inertial>
+    </link>
+
+    <joint name="cover_joint" type="revolute">
+        <axis xyz="0 1 0"/>
+        <origin xyz="0.11 0.064 0.087"/>
+        <limit effort="1.0" velocity="30" lower="0" upper="3.14"/>
+        <dynamics damping="0.0" friction="0.1"/>
+        <parent link="base_link"/>
+        <child link="cover"/>
+    </joint>
+
+</robot>

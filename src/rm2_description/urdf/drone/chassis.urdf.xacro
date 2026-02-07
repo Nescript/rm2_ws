@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<robot>
+
+    <!-- https://upload.wikimedia.org/wikipedia/commons/5/52/Wheelbase_and_Track.png -->
+
+    <link name="base_link">
+        <inertial>
+            <mass value="7.933506"/>
+            <origin xyz="-0.004794 0.00172 0.037912"/>
+            <inertia ixx="1.054" ixy="-1.98e-04" ixz="3.722e-03" iyy="1.041"
+                     iyz="1.046e-04" izz="1.9"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://rm2_description/meshes/drone/base_link.stl" scale="1 1 1"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://rm2_description/meshes/drone/base_link.stl" scale="1 1 1"/>
+            </geometry>
+        </collision>
+    </link>
+
+
+</robot>

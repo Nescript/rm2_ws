@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<robot>
+
+
+    <transmission name="trans_trigger_joint">
+        <type>transmission_interface/SimpleTransmission</type>
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <joint name="trigger_joint" role="actuated">
+            <mechanical_reduction>26.851</mechanical_reduction>
+            <offset>2.2</offset>
+        </joint>
+        <actuator name="trigger_joint_motor" role="actuated">
+            <mechanical_reduction>26.851</mechanical_reduction>
+        </actuator>
+    </transmission>
+
+    <transmission name="trans_left_front_friction_wheel_joint">
+        <type>transmission_interface/SimpleTransmission</type>
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <joint name="left_front_friction_wheel_joint" role="actuated">
+            <mechanical_reduction>1</mechanical_reduction>
+        </joint>
+        <actuator name="left_front_friction_wheel_joint_motor" role="actuated">
+            <mechanical_reduction>1</mechanical_reduction>
+        </actuator>
+    </transmission>
+
+    <transmission name="trans_mid_front_friction_wheel_joint">
+        <type>transmission_interface/SimpleTransmission</type>
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <joint name="mid_front_friction_wheel_joint" role="actuated">
+            <mechanical_reduction>1</mechanical_reduction>
+        </joint>
+        <actuator name="mid_front_friction_wheel_joint_motor" role="actuated">
+            <mechanical_reduction>1</mechanical_reduction>
+        </actuator>
+    </transmission>
+
+    <transmission name="trans_right_front_friction_wheel_joint">
+        <type>transmission_interface/SimpleTransmission</type>
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <joint name="right_front_friction_wheel_joint" role="actuated">
+            <mechanical_reduction>1</mechanical_reduction>
+        </joint>
+        <actuator name="right_front_friction_wheel_joint_motor" role="actuated">
+            <mechanical_reduction>1</mechanical_reduction>
+        </actuator>
+    </transmission>
+
+    <transmission name="trans_left_back_friction_wheel_joint">
+        <type>transmission_interface/SimpleTransmission</type>
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <joint name="left_back_friction_wheel_joint" role="actuated">
+            <mechanical_reduction>1</mechanical_reduction>
+        </joint>
+        <actuator name="left_back_friction_wheel_joint_motor" role="actuated">
+            <mechanical_reduction>1</mechanical_reduction>
+        </actuator>
+    </transmission>
+
+    <transmission name="trans_mid_back_friction_wheel_joint">
+        <type>transmission_interface/SimpleTransmission</type>
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <joint name="mid_back_friction_wheel_joint" role="actuated">
+            <mechanical_reduction>1</mechanical_reduction>
+        </joint>
+        <actuator name="mid_back_friction_wheel_joint_motor" role="actuated">
+            <mechanical_reduction>1</mechanical_reduction>
+        </actuator>
+    </transmission>
+
+    <transmission name="trans_right_back_friction_wheel_joint">
+        <type>transmission_interface/SimpleTransmission</type>
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <joint name="right_back_friction_wheel_joint" role="actuated">
+            <mechanical_reduction>1</mechanical_reduction>
+        </joint>
+        <actuator name="right_back_friction_wheel_joint_motor" role="actuated">
+            <mechanical_reduction>1</mechanical_reduction>
+        </actuator>
+    </transmission>
+
+</robot>
