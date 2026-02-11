@@ -12,6 +12,7 @@ endif()
 
 set(DEPEND_PACKAGES
         rclcpp
+        rclcpp_lifecycle
         controller_manager_msgs
         control_msgs
         geometry_msgs
