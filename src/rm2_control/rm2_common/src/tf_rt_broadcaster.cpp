@@ -15,6 +15,12 @@ void TfRtBroadcaster::init(rclcpp::Node::SharedPtr root_node)
   realtime_pub_.reset(new realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>(pub));
 }
 
+void TfRtBroadcaster::init(rclcpp_lifecycle::LifecycleNode::SharedPtr root_node)
+{
+  auto pub = root_node->create_publisher<tf2_msgs::msg::TFMessage>("/tf", 100);
+  realtime_pub_.reset(new realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>(pub));
+}
+
 void TfRtBroadcaster::sendTransform(const geometry_msgs::msg::TransformStamped& transform)
 {
   std::vector<geometry_msgs::msg::TransformStamped> v1;
@@ -37,6 +43,12 @@ void TfRtBroadcaster::sendTransform(const std::vector<geometry_msgs::msg::Transf
 }
 
 void StaticTfRtBroadcaster::init(rclcpp::Node::SharedPtr root_node)
+{
+  auto pub = root_node->create_publisher<tf2_msgs::msg::TFMessage>("/tf_static", 100);
+  realtime_pub_.reset(new realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>(pub));
+}
+
+void StaticTfRtBroadcaster::init(rclcpp_lifecycle::LifecycleNode::SharedPtr root_node)
 {
   auto pub = root_node->create_publisher<tf2_msgs::msg::TFMessage>("/tf_static", 100);
   realtime_pub_.reset(new realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>(pub));
