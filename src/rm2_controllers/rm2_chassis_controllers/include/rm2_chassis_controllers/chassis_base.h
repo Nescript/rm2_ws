@@ -47,7 +47,7 @@ public:
   controller_interface::InterfaceConfiguration command_interface_configuration() const override;
   controller_interface::InterfaceConfiguration state_interface_configuration() const override;
 
-  
+  controller_interface::return_type update(const rclcpp::Time& time, const rclcpp::Duration& period) override;
 protected:
   template<typename T>
   std::unordered_map<std::string, size_t> buildInterfaceIndexMap(T&& interfaces) {
