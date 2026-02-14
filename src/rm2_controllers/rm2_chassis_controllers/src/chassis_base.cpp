@@ -33,6 +33,13 @@ controller_interface::CallbackReturn ChassisBase::on_init()
     max_odom_vel_ = get_node()->declare_parameter<double>("max_odom_vel", 10);
     timeout_ = get_node()->declare_parameter<double>("timeout", 0.1);
 
+    enable_uphill_acceleration_ = get_node()->declare_parameter<bool>("enable_uphill_acceleration", false);
+    if (enable_uphill_acceleration_)
+    {
+      pitch_angle_threshold_ = get_node()->declare_parameter<double>("pitch_angle_threshold", -0.25);
+      scale_ = get_node()->declare_parameter<double>("scale", 1.0);
+    }
+
   }
   catch (std::exception& ex)
   {
@@ -245,6 +252,9 @@ controller_interface::return_type ChassisBase::update(const rclcpp::Time& time, 
   case TWIST:
     twist(time, period);
     break;
+  default:
+    RCLCPP_WARN(get_node()->get_logger(), "[Chassis] Unknown state");
+    break;
   }
 
   ramp_w_->setAcc(cmd_chassis.accel.angular.z);
@@ -269,7 +279,7 @@ void ChassisBase::raw()
   tfVelToBase(command_source_frame_);
 }
 
-void ChassisBase::follow(const rclcpp::Time& time, const rclcpp::Duration& period)
+void ChassisBase::follow(const rclcpp::Time& /*time*/, const rclcpp::Duration& period)
 {
   if (state_changed_)
   {
@@ -466,6 +476,12 @@ void ChassisBase::updateOdom(const rclcpp::Time& time, const rclcpp::Duration& p
         odom2base_quat.normalize();
         robot_odom2robot_base_.transform.rotation = tf2::toMsg(odom2base_quat);
       }
+
+      // The place of this code should make sure
+      tf2::Quaternion q;
+      tf2::fromMsg(robot_odom2robot_base_.transform.rotation, q);
+      tf2::Matrix3x3(q).getEulerYPR(yaw_, pitch_, roll_);
+
       // It has a return value of bool, which is different from ros1
       if (!robot_state_handle_.setTransform(robot_odom2robot_base_, "rm2_chassis_controllers"))
       {
@@ -535,11 +551,26 @@ void ChassisBase::powerLimit()
 
   for (size_t i = 0; i < wheel_joints_.joint_names.size(); ++i)
   {
-    if (!command_interfaces_[wheel_joints_.cmd_index[i]].set_value(zoom_coeff > 1 ?
-      command_interfaces_[wheel_joints_.cmd_index[i]].get_optional<double>().value() :
-      command_interfaces_[wheel_joints_.cmd_index[i]].get_optional<double>().value() * zoom_coeff))
+    if (pitch_ < pitch_angle_threshold_ && enable_uphill_acceleration_)
     {
-      RCLCPP_WARN(get_node()->get_logger(), "Command interface set value error in (namespace: %s)", get_node()->get_name());
+      if (wheel_joints_.joint_names[i].find("back") != std::string::npos)
+      {
+        (void)command_interfaces_[wheel_joints_.cmd_index[i]].set_value(zoom_coeff > 1 ?
+          command_interfaces_[wheel_joints_.cmd_index[i]].get_optional<double>().value() :
+          command_interfaces_[wheel_joints_.cmd_index[i]].get_optional<double>().value() * zoom_coeff * scale_);
+      }
+      if (wheel_joints_.joint_names[i].find("front") != std::string::npos)
+      {
+        (void)command_interfaces_[wheel_joints_.cmd_index[i]].set_value(zoom_coeff > 1 ?
+          command_interfaces_[wheel_joints_.cmd_index[i]].get_optional<double>().value() :
+          command_interfaces_[wheel_joints_.cmd_index[i]].get_optional<double>().value() * zoom_coeff);
+      }
+    }
+    else
+    {
+      (void)command_interfaces_[wheel_joints_.cmd_index[i]].set_value(zoom_coeff > 1 ?
+        command_interfaces_[wheel_joints_.cmd_index[i]].get_optional<double>().value() :
+        command_interfaces_[wheel_joints_.cmd_index[i]].get_optional<double>().value() * zoom_coeff);
     }
   }
 }

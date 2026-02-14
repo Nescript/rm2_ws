@@ -109,7 +109,7 @@ protected:
 
   void raw();
 
-  void follow(const rclcpp::Time& time, const rclcpp::Duration& period);
+  void follow(const rclcpp::Time& /*time*/, const rclcpp::Duration& period);
 
   void twist(const rclcpp::Time& time, const rclcpp::Duration& period);
 
@@ -185,10 +185,13 @@ protected:
   double publish_rate_{ 100.0 };
   bool publish_map_tf_{ false };
   bool publish_odom_tf_{ false };
+  bool enable_uphill_acceleration_{ false };
 
   double velocity_coeff_{ 0.0 };
   double effort_coeff_{ 0.0 };
   double power_offset_{ 0.0 };
+  double roll_ = 0., pitch_ = 0., yaw_ = 0.;
+  double pitch_angle_threshold_ = 0., scale_ = 0.;
 
   double wheel_radius_{ 0.0 };
   double twist_angular_{ M_PI / 6 };
