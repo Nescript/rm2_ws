@@ -37,6 +37,8 @@ set(DEPENDENCIES
 
 add_library(${PROJECT_NAME} SHARED
     src/chassis_base.cpp
+    src/omni.cpp
+    src/swerve.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC

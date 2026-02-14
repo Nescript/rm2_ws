@@ -7,10 +7,8 @@
 #include <rclcpp/rclcpp.hpp>
 #include <controller_interface/controller_interface.hpp>
 #include <hardware_interface/types/hardware_interface_type_values.hpp>
-#include <hardware_interface/loaned_command_interface.hpp>
 #include <hardware_interface/hardware_component.hpp>
 #include <hardware_interface/sensor_interface.hpp>
-#include <hardware_interface/loaned_state_interface.hpp>
 #include <realtime_tools/realtime_publisher.hpp>
 #include <realtime_tools/realtime_buffer.hpp>
 #include <rm2_common/hardware_handle/robot_state_handle.h>
@@ -29,15 +27,53 @@ namespace rm2_chassis_controllers
 {
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
-struct Command
-{
-  geometry_msgs::msg::Twist cmd_vel_;
-  rm2_msgs::msg::ChassisCmd cmd_chassis_;
-  rclcpp::Time stamp_;
-};
-
 class ChassisBase : public controller_interface::ControllerInterface
 {
+protected:
+  struct Command
+  {
+    geometry_msgs::msg::Twist cmd_vel_;
+    rm2_msgs::msg::ChassisCmd cmd_chassis_;
+    rclcpp::Time stamp_;
+  };
+
+  struct PidType
+  {
+    std::shared_ptr<control_toolbox::PidROS> pid_ptr;
+    double command{0.0};
+  };
+
+  struct Joints
+  {
+    std::vector<std::string> joint_names;
+    std::vector<size_t> cmd_index;
+    std::vector<size_t> pos_index;
+    std::vector<size_t> vel_index;
+    std::vector<size_t> eff_index;
+
+    void reset()
+    {
+      cmd_index.clear();
+      pos_index.clear();
+      vel_index.clear();
+      eff_index.clear();
+    }
+
+    void reserve(size_t n)
+    {
+      cmd_index.reserve(n);
+      pos_index.reserve(n);
+      vel_index.reserve(n);
+      eff_index.reserve(n);
+    }
+  };
+
+  enum
+  {
+    RAW,
+    FOLLOW,
+    TWIST
+  };
 public:
   ChassisBase() = default;
   controller_interface::CallbackReturn on_init() override;
@@ -59,6 +95,18 @@ protected:
     return interface_index_map;
   }
 
+  void buildJointsIndex(Joints& joints,const std::unordered_map<std::string, size_t>& command_map,
+    const std::unordered_map<std::string, size_t>& state_map)
+  {
+    for (const auto& joint_name : joints.joint_names)
+    {
+      joints.cmd_index.push_back(command_map.at(joint_name + "/" + hardware_interface::HW_IF_EFFORT));
+      joints.pos_index.push_back(state_map.at(joint_name + "/" + hardware_interface::HW_IF_POSITION));
+      joints.vel_index.push_back(state_map.at(joint_name + "/" + hardware_interface::HW_IF_VELOCITY));
+      joints.eff_index.push_back(state_map.at(joint_name + "/" + hardware_interface::HW_IF_EFFORT));
+    }
+  }
+
   void raw();
 
   void follow(const rclcpp::Time& time, const rclcpp::Duration& period);
@@ -69,7 +117,7 @@ protected:
 
   virtual geometry_msgs::msg::Twist odometry() = 0;
 
-  void updateOdometry(const rclcpp::Time& time, const rclcpp::Duration& period);
+  void updateOdom(const rclcpp::Time& time, const rclcpp::Duration& period);
 
   void recovery();
 
@@ -89,16 +137,26 @@ protected:
    * The reading of parameters in ros2 is different, this function was no use in ros2
   */
 
-  // Is a hard point to initialize the robot state handle
+  // We should initialize robot state handle use buffer
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
   rm2_control::RobotStateHandle robot_state_handle_;
   /* This vector of interface will be filled by controller manager in active stage, not on_init or on_configure
    * And change effort_command_interface to command_interface_ to adapt to ROS2 structure
+   * controller_interface_base already have this two member
+   * std::vector<hardware_interface::LoanedCommandInterface> command_interface_;
+   * std::vector<hardware_interface::LoanedStateInterface> state_interfaces_;
    */
-  std::vector<hardware_interface::LoanedCommandInterface> command_interface_;
-  std::vector<hardware_interface::LoanedStateInterface> state_interfaces_;
+
+  // std::vector<std::string> wheel_joint_names_;
+  // std::vector<std::string> pivot_joint_names_;   // If the Omni chassis
+  // std::vector<std::string> knee_joint_names_;  // If the Legged chassis
+  // std::vector<std::string> hip_joint_names_;   // If the Legged chassis
+  Joints wheel_joints_;
+
   realtime_tools::RealtimeBuffer<Command> cmd_rt_buffer_;
   realtime_tools::RealtimeBuffer<nav_msgs::msg::Odometry> slam_rt_buffer_;
-  realtime_tools::RealtimeBuffer<geometry_msgs::msg::Twist> localization_rt_buffer_;
+  realtime_tools::RealtimeBuffer<geometry_msgs::msg::TransformStamped> localization_rt_buffer_;
 
   rm2_common::TfRtBroadcaster brcst4global_map2robot_odom_{};
   rm2_common::TfRtBroadcaster brcst4robot_odom2robot_base_{};
@@ -155,20 +213,8 @@ protected:
   rclcpp::Time last_publish_time_{};
   geometry_msgs::msg::Vector3 vel_cmd_{};   // x, y
 
-  struct PidType
-  {
-    std::shared_ptr<control_toolbox::PidROS> pid_ptr;
-    double command{0.0};
-  };
-
-  PidType pid_follow_;
   Command cmd_struct_;
-  enum
-  {
-    RAW,
-    FOLLOW,
-    TWIST
-  };
+  PidType pid_follow_;
 };
 
 } // namespace rm2_chassis_controllers
