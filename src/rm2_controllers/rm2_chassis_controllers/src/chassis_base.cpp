@@ -11,7 +11,7 @@ controller_interface::CallbackReturn ChassisBase::on_init()
 {
   try
   {
-    wheel_joints_.joint_names = get_node()->declare_parameter<std::vector<std::string>>("joints.wheel", std::vector<std::string>{});
+    wheel_joints_.joint_names = get_node()->declare_parameter<std::vector<std::string>>("joint_names.wheels", std::vector<std::string>{});
     if (wheel_joints_.joint_names.empty())
     {
       RCLCPP_ERROR(get_node()->get_logger(), "No joint given (namespace: %s)", get_node()->get_name());
@@ -58,8 +58,9 @@ controller_interface::CallbackReturn ChassisBase::on_configure(const rclcpp_life
   robot_state_handle_ = rm2_control::RobotStateHandle("robot_state", tf_buffer_.get());
 
   // Should make sure the initialization of pid_follow?
-  pid_follow_.pid_ptr = std::make_shared<control_toolbox::PidROS>(get_node(), "pid_follow");
-  pid_follow_.pid_ptr->initialize_from_ros_parameters();
+  pid_follow_ = std::make_shared<control_toolbox::PidROS>(get_node(), "pid_follow");
+  pid_follow_->initialize_from_ros_parameters();
+  buildJointsPids(wheel_joints_);
 
   // How to assign Qos?
   cmd_vel_sub_ = get_node()->create_subscription<geometry_msgs::msg::Twist>("cmd_vel", rclcpp::QoS(1),
@@ -163,10 +164,8 @@ controller_interface::CallbackReturn ChassisBase::on_activate(const rclcpp_lifec
 
   auto command_interface_index_map_ = buildInterfaceIndexMap(command_interfaces_);
   auto state_interface_index_map_ = buildInterfaceIndexMap(state_interfaces_);
-
   wheel_joints_.reset();
   wheel_joints_.reserve(wheel_joints_.joint_names.size());
-
   buildJointsIndex(wheel_joints_, command_interface_index_map_, state_interface_index_map_);
 
   return CallbackReturn::SUCCESS;
@@ -183,7 +182,7 @@ controller_interface::CallbackReturn ChassisBase::on_deactivate(const rclcpp_lif
     }
   }
 
-  pid_follow_.pid_ptr->reset();
+  pid_follow_->reset();
   wheel_joints_.reset();
   ramp_x_->clear();
   ramp_y_->clear();
@@ -287,7 +286,7 @@ void ChassisBase::follow(const rclcpp::Time& /*time*/, const rclcpp::Duration& p
     RCLCPP_INFO(get_node()->get_logger(), "[Chassis] Enter FOLLOW");
 
     recovery();
-    pid_follow_.pid_ptr->reset();
+    pid_follow_->reset();
   }
   tfVelToBase(command_source_frame_);
 
@@ -298,8 +297,8 @@ void ChassisBase::follow(const rclcpp::Time& /*time*/, const rclcpp::Duration& p
       robot_base_frame_id_, follow_source_frame_, rclcpp::Time(0)).transform.rotation,
       roll, pitch, yaw);
     double follow_error = angles::shortest_angular_distance(yaw, 0);
-    pid_follow_.pid_ptr->compute_command(-follow_error, period);
-    vel_cmd_.z = pid_follow_.pid_ptr->get_current_cmd() + cmd_rt_buffer_.readFromRT()->cmd_chassis_.follow_vel_des;
+    pid_follow_->compute_command(-follow_error, period);
+    vel_cmd_.z = pid_follow_->get_current_cmd() + cmd_rt_buffer_.readFromRT()->cmd_chassis_.follow_vel_des;
   }
   catch (tf2::TransformException& ex)
   {
@@ -315,7 +314,7 @@ void ChassisBase::twist(const rclcpp::Time& time, const rclcpp::Duration& period
     RCLCPP_INFO(get_node()->get_logger(), "[Chassis] Enter TWIST");
 
     recovery();
-    pid_follow_.pid_ptr->reset();
+    pid_follow_->reset();
   }
   tfVelToBase(command_source_frame_);
 
@@ -338,8 +337,8 @@ void ChassisBase::twist(const rclcpp::Time& time, const rclcpp::Duration& period
     double follow_error =
       angles::shortest_angular_distance(yaw, twist_angular_ * sin(2 * M_PI * time.seconds()) + off_set);
 
-    pid_follow_.pid_ptr->compute_command(-follow_error, period);  // The actual output is opposite to the calculated value
-    vel_cmd_.z = pid_follow_.pid_ptr->get_current_cmd();
+    pid_follow_->compute_command(-follow_error, period);  // The actual output is opposite to the calculated value
+    vel_cmd_.z = pid_follow_->get_current_cmd();
   }
   catch (tf2::TransformException& ex)
   {

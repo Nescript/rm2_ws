@@ -37,12 +37,6 @@ protected:
     rclcpp::Time stamp_;
   };
 
-  struct PidType
-  {
-    std::shared_ptr<control_toolbox::PidROS> pid_ptr;
-    double command{0.0};
-  };
-
   struct Joints
   {
     std::vector<std::string> joint_names;
@@ -50,6 +44,7 @@ protected:
     std::vector<size_t> pos_index;
     std::vector<size_t> vel_index;
     std::vector<size_t> eff_index;
+    std::vector<std::shared_ptr<control_toolbox::PidROS>> pids;
 
     void reset()
     {
@@ -104,6 +99,19 @@ protected:
       joints.pos_index.push_back(state_map.at(joint_name + "/" + hardware_interface::HW_IF_POSITION));
       joints.vel_index.push_back(state_map.at(joint_name + "/" + hardware_interface::HW_IF_VELOCITY));
       joints.eff_index.push_back(state_map.at(joint_name + "/" + hardware_interface::HW_IF_EFFORT));
+    }
+  }
+
+  void buildJointsPids(Joints& joints)
+  {
+    joints.pids.clear();
+    joints.pids.reserve(joints.joint_names.size());
+    for (const auto& joint_name : joints.joint_names)
+    {
+      // Whether pid initialize in activate? Whether ptr use this API to initialize?
+      auto pid = std::make_shared<control_toolbox::PidROS>(this->get_node(), joint_name + ".pid", "~/" + joint_name, false);
+      pid->initialize_from_ros_parameters();
+      joints.pids.push_back(pid);
     }
   }
 
@@ -217,7 +225,7 @@ protected:
   geometry_msgs::msg::Vector3 vel_cmd_{};   // x, y
 
   Command cmd_struct_;
-  PidType pid_follow_;
+  std::shared_ptr<control_toolbox::PidROS> pid_follow_;
 };
 
 } // namespace rm2_chassis_controllers
