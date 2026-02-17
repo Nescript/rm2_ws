@@ -15,6 +15,13 @@ hardware_interface::CallbackReturn OmniController::on_init()
   }
   try
   {
+    wheel_joints_.joint_names = get_node()->declare_parameter<std::vector<std::string>>("joint_names.wheels", std::vector<std::string>{});
+    power_limit_joints_ = &wheel_joints_;
+    if (wheel_joints_.joint_names.empty())
+    {
+      RCLCPP_ERROR(get_node()->get_logger(), "No joint given (namespace: %s)", get_node()->get_name());
+      return CallbackReturn::ERROR;
+    }
     K = get_node()->declare_parameter<double>("K", 1.0);
   }
   catch (std::exception& ex)
@@ -31,6 +38,8 @@ hardware_interface::CallbackReturn OmniController::on_configure(const rclcpp_lif
   {
     return CallbackReturn::ERROR;
   }
+
+  buildJointsPids(wheel_joints_);
 
   chassis2joints_.resize(wheel_joints_.joint_names.size(), 3);
   for (size_t i = 0; i < wheel_joints_.joint_names.size(); ++i)
@@ -69,6 +78,61 @@ hardware_interface::CallbackReturn OmniController::on_configure(const rclcpp_lif
   return CallbackReturn::SUCCESS;
 }
 
+controller_interface::CallbackReturn OmniController::on_activate(const rclcpp_lifecycle::State& previous_state)
+{
+  if (ChassisBase::on_activate(previous_state) != CallbackReturn::SUCCESS)
+  {
+    return CallbackReturn::ERROR;
+  }
+
+  auto command_interface_index_map = buildInterfaceIndexMap(command_interfaces_);
+  auto state_interface_index_map = buildInterfaceIndexMap(state_interfaces_);
+  wheel_joints_.reset();
+  wheel_joints_.reserve(wheel_joints_.joint_names.size());
+  buildJointsIndex(wheel_joints_, command_interface_index_map, state_interface_index_map);
+
+  return CallbackReturn::SUCCESS;
+}
+
+controller_interface::CallbackReturn OmniController::on_deactivate(const rclcpp_lifecycle::State& previous_state)
+{
+  if (ChassisBase::on_deactivate(previous_state) != CallbackReturn::SUCCESS)
+  {
+    return CallbackReturn::ERROR;
+  }
+  wheel_joints_.reset();
+
+  return CallbackReturn::SUCCESS;
+}
+
+controller_interface::InterfaceConfiguration OmniController::command_interface_configuration() const
+{
+  controller_interface::InterfaceConfiguration config;
+  config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
+
+  for (const std::string& joint_name : wheel_joints_.joint_names)
+  {
+    config.names.push_back(joint_name + "/" + hardware_interface::HW_IF_EFFORT);
+  }
+
+  return config;
+}
+
+controller_interface::InterfaceConfiguration OmniController::state_interface_configuration() const
+{
+  controller_interface::InterfaceConfiguration config;
+  config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
+
+  for (const std::string& joint_name : wheel_joints_.joint_names)
+  {
+    config.names.push_back(joint_name + "/" + hardware_interface::HW_IF_POSITION);
+    config.names.push_back(joint_name + "/" + hardware_interface::HW_IF_VELOCITY);
+    config.names.push_back(joint_name + "/" + hardware_interface::HW_IF_EFFORT);
+  }
+
+  return config;
+}
+
 void OmniController::moveJoint(const rclcpp::Time& /*time*/, const rclcpp::Duration& period)
 {
   Eigen::Vector3d vel_chassis;
@@ -103,6 +167,6 @@ geometry_msgs::msg::Twist OmniController::odometry()
   twist.linear.y = vel_chassis(2);
   return twist;
 }
-}
+} // namespace rm2_chassis_controller
 
 PLUGINLIB_EXPORT_CLASS(rm2_chassis_controllers::OmniController, controller_interface::ControllerInterface)

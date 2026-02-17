@@ -1,0 +1,19 @@
+<library path="rm2_chassis_controllers">
+
+<class name="rm2_chassis_controllers/OmniController"
+       type="rm2_chassis_controllers::OmniController"
+       base_class_type="controller_interface::ControllerInterface">
+    <description>
+        Omni chassis controller.
+    </description>
+</class>
+
+<class name="rm2_chassis_controllers/SwerveController"
+       type="rm2_chassis_controllers::SwerveController"
+       base_class_type="controller_interface::ControllerInterface">
+    <description>
+        Swerve chassis controller.
+    </description>
+</class>
+
+</library>

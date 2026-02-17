@@ -11,13 +11,6 @@ controller_interface::CallbackReturn ChassisBase::on_init()
 {
   try
   {
-    wheel_joints_.joint_names = get_node()->declare_parameter<std::vector<std::string>>("joint_names.wheels", std::vector<std::string>{});
-    if (wheel_joints_.joint_names.empty())
-    {
-      RCLCPP_ERROR(get_node()->get_logger(), "No joint given (namespace: %s)", get_node()->get_name());
-      return CallbackReturn::ERROR;
-    }
-
     publish_rate_ = get_node()->declare_parameter<double>("publish_rate", 100.0);
     publish_map_tf_ = get_node()->declare_parameter<bool>("publish_map_tf", false);
     publish_odom_tf_ = get_node()->declare_parameter<bool>("publish_odom_tf", false);
@@ -60,7 +53,6 @@ controller_interface::CallbackReturn ChassisBase::on_configure(const rclcpp_life
   // Should make sure the initialization of pid_follow?
   pid_follow_ = std::make_shared<control_toolbox::PidROS>(get_node(), "pid_follow");
   pid_follow_->initialize_from_ros_parameters();
-  buildJointsPids(wheel_joints_);
 
   // How to assign Qos?
   cmd_vel_sub_ = get_node()->create_subscription<geometry_msgs::msg::Twist>("cmd_vel", rclcpp::QoS(1),
@@ -123,34 +115,6 @@ controller_interface::CallbackReturn ChassisBase::on_configure(const rclcpp_life
   return CallbackReturn::SUCCESS;
 }
 
-controller_interface::InterfaceConfiguration ChassisBase::command_interface_configuration() const
-{
-  controller_interface::InterfaceConfiguration config;
-  config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
-
-  for (const std::string& joint_name : wheel_joints_.joint_names)
-  {
-    config.names.push_back(joint_name + "/" + hardware_interface::HW_IF_EFFORT);
-  }
-
-  return config;
-}
-
-controller_interface::InterfaceConfiguration ChassisBase::state_interface_configuration() const
-{
-  controller_interface::InterfaceConfiguration config;
-  config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
-
-  for (const std::string& joint_name : wheel_joints_.joint_names)
-  {
-    config.names.push_back(joint_name + "/" + hardware_interface::HW_IF_POSITION);
-    config.names.push_back(joint_name + "/" + hardware_interface::HW_IF_VELOCITY);
-    config.names.push_back(joint_name + "/" + hardware_interface::HW_IF_EFFORT);
-  }
-
-  return config;
-}
-
 controller_interface::CallbackReturn ChassisBase::on_activate(const rclcpp_lifecycle::State& /*previous_state*/)
 {
   for (auto& cmd : command_interfaces_)
@@ -161,12 +125,6 @@ controller_interface::CallbackReturn ChassisBase::on_activate(const rclcpp_lifec
       return CallbackReturn::ERROR;
     }
   }
-
-  auto command_interface_index_map_ = buildInterfaceIndexMap(command_interfaces_);
-  auto state_interface_index_map_ = buildInterfaceIndexMap(state_interfaces_);
-  wheel_joints_.reset();
-  wheel_joints_.reserve(wheel_joints_.joint_names.size());
-  buildJointsIndex(wheel_joints_, command_interface_index_map_, state_interface_index_map_);
 
   return CallbackReturn::SUCCESS;
 }
@@ -183,7 +141,6 @@ controller_interface::CallbackReturn ChassisBase::on_deactivate(const rclcpp_lif
   }
 
   pid_follow_->reset();
-  wheel_joints_.reset();
   ramp_x_->clear();
   ramp_y_->clear();
   ramp_w_->clear();
@@ -531,14 +488,18 @@ void ChassisBase::tfVelToBase(const std::string& from)
 
 void ChassisBase::powerLimit()
 {
+  if (power_limit_joints_ == nullptr)
+  {
+    return;
+  }
   double power_limit = cmd_rt_buffer_.readFromRT()->cmd_chassis_.power_limit;
   // Three coefficients of a quadratic equation in one variable
   double a = 0., b = 0., c = 0.;
   // Whether we must use get_optional()?
-  for (size_t i = 0; i < wheel_joints_.joint_names.size(); ++i)
+  for (size_t i = 0; i < power_limit_joints_->joint_names.size(); ++i)
   {
-    double cmd_effort = command_interfaces_[wheel_joints_.cmd_index[i]].get_optional<double>().value();
-    double real_vel = state_interfaces_[wheel_joints_.vel_index[i]].get_optional<double>().value();
+    double cmd_effort = command_interfaces_[power_limit_joints_->cmd_index[i]].get_optional<double>().value();
+    double real_vel = state_interfaces_[power_limit_joints_->vel_index[i]].get_optional<double>().value();
     a += square(cmd_effort);
     b += std::abs(cmd_effort * real_vel);
     c += square(real_vel);
@@ -548,28 +509,28 @@ void ChassisBase::powerLimit()
   // Root formula for quadratic equation in one variable
   double zoom_coeff = (square(b) - 4 * a * c) > 0 ? ((-b + sqrt(square(b) - 4 * a * c)) / (2 * a)) : 0.;
 
-  for (size_t i = 0; i < wheel_joints_.joint_names.size(); ++i)
+  for (size_t i = 0; i < power_limit_joints_->joint_names.size(); ++i)
   {
     if (pitch_ < pitch_angle_threshold_ && enable_uphill_acceleration_)
     {
-      if (wheel_joints_.joint_names[i].find("back") != std::string::npos)
+      if (power_limit_joints_->joint_names[i].find("back") != std::string::npos)
       {
-        (void)command_interfaces_[wheel_joints_.cmd_index[i]].set_value(zoom_coeff > 1 ?
-          command_interfaces_[wheel_joints_.cmd_index[i]].get_optional<double>().value() :
-          command_interfaces_[wheel_joints_.cmd_index[i]].get_optional<double>().value() * zoom_coeff * scale_);
+        (void)command_interfaces_[power_limit_joints_->cmd_index[i]].set_value(zoom_coeff > 1 ?
+          command_interfaces_[power_limit_joints_->cmd_index[i]].get_optional<double>().value() :
+          command_interfaces_[power_limit_joints_->cmd_index[i]].get_optional<double>().value() * zoom_coeff * scale_);
       }
-      if (wheel_joints_.joint_names[i].find("front") != std::string::npos)
+      if (power_limit_joints_->joint_names[i].find("front") != std::string::npos)
       {
-        (void)command_interfaces_[wheel_joints_.cmd_index[i]].set_value(zoom_coeff > 1 ?
-          command_interfaces_[wheel_joints_.cmd_index[i]].get_optional<double>().value() :
-          command_interfaces_[wheel_joints_.cmd_index[i]].get_optional<double>().value() * zoom_coeff);
+        (void)command_interfaces_[power_limit_joints_->cmd_index[i]].set_value(zoom_coeff > 1 ?
+          command_interfaces_[power_limit_joints_->cmd_index[i]].get_optional<double>().value() :
+          command_interfaces_[power_limit_joints_->cmd_index[i]].get_optional<double>().value() * zoom_coeff);
       }
     }
     else
     {
-      (void)command_interfaces_[wheel_joints_.cmd_index[i]].set_value(zoom_coeff > 1 ?
-        command_interfaces_[wheel_joints_.cmd_index[i]].get_optional<double>().value() :
-        command_interfaces_[wheel_joints_.cmd_index[i]].get_optional<double>().value() * zoom_coeff);
+      (void)command_interfaces_[power_limit_joints_->cmd_index[i]].set_value(zoom_coeff > 1 ?
+        command_interfaces_[power_limit_joints_->cmd_index[i]].get_optional<double>().value() :
+        command_interfaces_[power_limit_joints_->cmd_index[i]].get_optional<double>().value() * zoom_coeff);
     }
   }
 }

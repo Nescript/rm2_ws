@@ -66,6 +66,8 @@ install(DIRECTORY include/
     DESTINATION include
 )
 
+pluginlib_export_plugin_description_file(controller_interface rm2_chassis_controllers_plugins.xml)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights

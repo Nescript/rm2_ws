@@ -37,7 +37,7 @@ protected:
     rclcpp::Time stamp_;
   };
 
-  struct Joints
+  struct JointGroup
   {
     std::vector<std::string> joint_names;
     std::vector<size_t> cmd_index;
@@ -75,8 +75,6 @@ public:
   controller_interface::CallbackReturn on_configure(const rclcpp_lifecycle::State& /*previous_state*/) override;
   controller_interface::CallbackReturn on_activate(const rclcpp_lifecycle::State& /*previous_state*/) override;
   controller_interface::CallbackReturn on_deactivate(const rclcpp_lifecycle::State& /*previous_state*/) override;
-  controller_interface::InterfaceConfiguration command_interface_configuration() const override;
-  controller_interface::InterfaceConfiguration state_interface_configuration() const override;
 
   controller_interface::return_type update(const rclcpp::Time& time, const rclcpp::Duration& period) override;
 protected:
@@ -90,7 +88,7 @@ protected:
     return interface_index_map;
   }
 
-  void buildJointsIndex(Joints& joints,const std::unordered_map<std::string, size_t>& command_map,
+  void buildJointsIndex(JointGroup& joints,const std::unordered_map<std::string, size_t>& command_map,
     const std::unordered_map<std::string, size_t>& state_map)
   {
     for (const auto& joint_name : joints.joint_names)
@@ -102,7 +100,7 @@ protected:
     }
   }
 
-  void buildJointsPids(Joints& joints)
+  void buildJointsPids(JointGroup& joints)
   {
     joints.pids.clear();
     joints.pids.reserve(joints.joint_names.size());
@@ -156,12 +154,12 @@ protected:
    * std::vector<hardware_interface::LoanedStateInterface> state_interfaces_;
    */
 
-  // std::vector<std::string> wheel_joint_names_;
-  // std::vector<std::string> pivot_joint_names_;   // If the Omni chassis
-  // std::vector<std::string> knee_joint_names_;  // If the Legged chassis
-  // std::vector<std::string> hip_joint_names_;   // If the Legged chassis
-  Joints wheel_joints_;
+  // JointGroup wheel_joints_;
+  // JointGroup pivot_joints_;   // If the Omni chassis
+  // JointGroup knee_joints_;  // If the Legged chassis
+  // JointGroup hip_joints_;   // If the Legged chassis
 
+  JointGroup* power_limit_joints_{ nullptr };
   realtime_tools::RealtimeBuffer<Command> cmd_rt_buffer_;
   realtime_tools::RealtimeBuffer<nav_msgs::msg::Odometry> slam_rt_buffer_;
   realtime_tools::RealtimeBuffer<geometry_msgs::msg::TransformStamped> localization_rt_buffer_;
