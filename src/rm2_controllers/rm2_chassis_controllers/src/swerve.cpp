@@ -77,7 +77,7 @@ hardware_interface::CallbackReturn SwerveController::on_configure(const rclcpp_l
     }
     Vec2<double> position = {pos[0], pos[1]};
     auto radius = get_node()->declare_parameter<double>(modules_.wheel_joints.joint_names[i] + ".radius", 0.049);
-    auto pivot_offset = get_node()->declare_parameter<double>(modules_.pivot_joints.joint_names[i] + ".pivot_offset", 0.);
+    auto pivot_offset = get_node()->declare_parameter<double>(modules_.pivot_joints.joint_names[i] + ".offset", 0.);
     auto pivot_buffer_threshold = get_node()->declare_parameter<double>(modules_.pivot_joints.joint_names[i] + ".buffer_threshold", 10.0);
     auto pivot_effort_threshold = get_node()->declare_parameter<double>(modules_.pivot_joints.joint_names[i] + ".effort_threshold", 0.9);
     auto pivot_position_error_threshold = get_node()->declare_parameter<double>(modules_.pivot_joints.joint_names[i] + ".position_error_threshold", 0.1);
