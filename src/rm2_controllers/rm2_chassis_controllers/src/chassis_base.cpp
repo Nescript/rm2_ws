@@ -4,6 +4,7 @@
 
 #include "rm2_chassis_controllers/chassis_base.h"
 #include <angles/angles/angles.h>
+#include <rm2_common/robot_state_manager.h>
 
 namespace rm2_chassis_controllers
 {
@@ -45,11 +46,6 @@ controller_interface::CallbackReturn ChassisBase::on_init()
 
 controller_interface::CallbackReturn ChassisBase::on_configure(const rclcpp_lifecycle::State& /*previous_state*/)
 {
-  // I think it could be optimized
-  tf_buffer_ = std::make_shared<tf2_ros::Buffer>(get_node()->get_clock());
-  tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
-  robot_state_handle_ = rm2_control::RobotStateHandle("robot_state", tf_buffer_.get());
-
   // Should make sure the initialization of pid_follow?
   pid_follow_ = std::make_shared<control_toolbox::PidROS>(get_node(), "pid_follow");
   pid_follow_->initialize_from_ros_parameters();
@@ -83,6 +79,8 @@ controller_interface::CallbackReturn ChassisBase::on_configure(const rclcpp_life
   ramp_y_ = std::make_unique<RampFilter<double>>(0, 0.001);
   ramp_w_ = std::make_unique<RampFilter<double>>(0, 0.001);
 
+  cmd_struct_.stamp_ns = get_node()->get_clock()->now().nanoseconds();
+
   if (publish_map_tf_)
   {
     // Whether we use node time or rclcpp time?
@@ -104,9 +102,10 @@ controller_interface::CallbackReturn ChassisBase::on_configure(const rclcpp_life
   if (publish_odom_tf_)
   {
     robot_odom2robot_base_.header.stamp = get_node()->get_clock()->now();
+    RCLCPP_INFO(get_node()->get_logger(), "type: %d", get_node()->get_clock()->get_clock_type());
     robot_odom2robot_base_.header.frame_id = robot_odom_frame_id_;
     robot_odom2robot_base_.child_frame_id = robot_base_frame_id_;
-    global_map2robot_odom_.transform.rotation.w = 1;
+    global_map2robot_odom_.transform.rotation.w = 1.0;
     brcst4robot_odom2robot_base_.init(get_node());
     brcst4robot_odom2robot_base_.sendTransform(robot_odom2robot_base_);
 
@@ -126,6 +125,10 @@ controller_interface::CallbackReturn ChassisBase::on_activate(const rclcpp_lifec
     }
   }
 
+  // I think it could be optimized
+  auto tf_buffer = rm2_common::RobotStateManager::instance().getBuffer();
+  robot_state_handle_ = rm2_control::RobotStateHandle("robot_state", tf_buffer.get());
+
   return CallbackReturn::SUCCESS;
 }
 
@@ -144,18 +147,25 @@ controller_interface::CallbackReturn ChassisBase::on_deactivate(const rclcpp_lif
   ramp_x_->clear();
   ramp_y_->clear();
   ramp_w_->clear();
-  last_publish_time_ = rclcpp::Time(0);
 
   return CallbackReturn::SUCCESS;
 }
 
 controller_interface::return_type ChassisBase::update(const rclcpp::Time& time, const rclcpp::Duration& period)
 {
-  // How to update?
-  rm2_msgs::msg::ChassisCmd cmd_chassis = cmd_rt_buffer_.readFromRT()->cmd_chassis_;
-  geometry_msgs::msg::Twist cmd_vel = cmd_rt_buffer_.readFromRT()->cmd_vel_;
+  if (!last_publish_time_initialized_)
+  {
+    last_publish_time_ = time;
+    last_publish_time_initialized_ = true;
+  }
 
-  if ((time - cmd_rt_buffer_.readFromRT()->stamp_).seconds() > timeout_)
+  // How to update?
+  rm2_msgs::msg::ChassisCmd cmd_chassis = cmd_rt_buffer_.readFromRT()->cmd_chassis;
+  geometry_msgs::msg::Twist cmd_vel = cmd_rt_buffer_.readFromRT()->cmd_vel;
+
+  auto stamp = rclcpp::Time(cmd_rt_buffer_.readFromRT()->stamp_ns, time.get_clock_type());
+
+  if ((time - stamp).seconds() > timeout_)
   {
     vel_cmd_.x = 0.;
     vel_cmd_.y = 0.;
@@ -172,21 +182,21 @@ controller_interface::return_type ChassisBase::update(const rclcpp::Time& time, 
     vel_cmd_.z = cmd_vel.angular.z;
   }
 
-  if (cmd_rt_buffer_.readFromRT()->cmd_chassis_.follow_source_frame.empty())
+  if (cmd_rt_buffer_.readFromRT()->cmd_chassis.follow_source_frame.empty())
   {
     follow_source_frame_ = "yaw";
   }
   else
   {
-    follow_source_frame_ = cmd_rt_buffer_.readFromRT()->cmd_chassis_.follow_source_frame;
+    follow_source_frame_ = cmd_rt_buffer_.readFromRT()->cmd_chassis.follow_source_frame;
   }
-  if (cmd_rt_buffer_.readFromRT()->cmd_chassis_.command_source_frame.empty())
+  if (cmd_rt_buffer_.readFromRT()->cmd_chassis.command_source_frame.empty())
   {
     command_source_frame_ = "yaw";
   }
   else
   {
-    command_source_frame_ = cmd_rt_buffer_.readFromRT()->cmd_chassis_.command_source_frame;
+    command_source_frame_ = cmd_rt_buffer_.readFromRT()->cmd_chassis.command_source_frame;
   }
 
   if (state_ != cmd_chassis.mode)
@@ -255,7 +265,7 @@ void ChassisBase::follow(const rclcpp::Time& /*time*/, const rclcpp::Duration& p
       roll, pitch, yaw);
     double follow_error = angles::shortest_angular_distance(yaw, 0);
     pid_follow_->compute_command(-follow_error, period);
-    vel_cmd_.z = pid_follow_->get_current_cmd() + cmd_rt_buffer_.readFromRT()->cmd_chassis_.follow_vel_des;
+    vel_cmd_.z = pid_follow_->get_current_cmd() + cmd_rt_buffer_.readFromRT()->cmd_chassis.follow_vel_des;
   }
   catch (tf2::TransformException& ex)
   {
@@ -305,6 +315,10 @@ void ChassisBase::twist(const rclcpp::Time& time, const rclcpp::Duration& period
 
 void ChassisBase::updateOdom(const rclcpp::Time& time, const rclcpp::Duration& period)
 {
+  if (!std::isfinite(period.seconds()) || period.seconds() <= 0.0)
+  {
+    return;
+  }
   if (publish_map_tf_)
   {
     if (!odom_initialized_)
@@ -492,7 +506,7 @@ void ChassisBase::powerLimit()
   {
     return;
   }
-  double power_limit = cmd_rt_buffer_.readFromRT()->cmd_chassis_.power_limit;
+  double power_limit = cmd_rt_buffer_.readFromRT()->cmd_chassis.power_limit;
   // Three coefficients of a quadratic equation in one variable
   double a = 0., b = 0., c = 0.;
   // Whether we must use get_optional()?
@@ -537,14 +551,15 @@ void ChassisBase::powerLimit()
 
 void ChassisBase::cmdChassisCallback(const rm2_msgs::msg::ChassisCmd::ConstSharedPtr msg)
 {
-  cmd_struct_.cmd_chassis_ = *msg;
+  cmd_struct_.cmd_chassis = *msg;
+  cmd_struct_.stamp_ns = get_node()->get_clock()->now().nanoseconds();
   cmd_rt_buffer_.writeFromNonRT(cmd_struct_);
 }
 
 void ChassisBase::cmdVelCallback(const geometry_msgs::msg::Twist::ConstSharedPtr msg)
 {
-  cmd_struct_.cmd_vel_ = *msg;
-  cmd_struct_.stamp_ = get_node()->get_clock()->now();
+  cmd_struct_.cmd_vel = *msg;
+  cmd_struct_.stamp_ns = get_node()->get_clock()->now().nanoseconds();
   cmd_rt_buffer_.writeFromNonRT(cmd_struct_);
 }
 

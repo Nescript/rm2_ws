@@ -1,5 +1,5 @@
 can_motors:
-  - can_id: 1
+  - can_id: 3
     can_bus: 0
     name: "test_motor"
     type: "M3508"

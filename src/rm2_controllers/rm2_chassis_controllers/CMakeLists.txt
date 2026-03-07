@@ -19,6 +19,7 @@ find_package(nav_msgs REQUIRED)
 find_package(tf2_geometry_msgs REQUIRED)
 find_package(control_toolbox REQUIRED)
 find_package(pluginlib REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 set(DEPENDENCIES
     rclcpp
@@ -33,6 +34,7 @@ set(DEPENDENCIES
     tf2_geometry_msgs
     control_toolbox
     pluginlib
+    Eigen3
 )
 
 add_library(${PROJECT_NAME} SHARED

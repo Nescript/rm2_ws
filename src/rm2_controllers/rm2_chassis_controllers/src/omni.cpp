@@ -4,6 +4,8 @@
 
 #include "rm2_chassis_controllers/omni.h"
 #include <pluginlib/class_list_macros.hpp>
+#include <Eigen/Dense>
+#include <Eigen/QR>
 
 namespace rm2_chassis_controllers
 {
@@ -160,7 +162,7 @@ geometry_msgs::msg::Twist OmniController::odometry()
   {
     vel_joints[i] = state_interfaces_[wheel_joints_.vel_index[i]].get_optional<double>().value();
   }
-  Eigen::Vector3d vel_chassis = (chassis2joints_.transpose() * chassis2joints_).inverse() * chassis2joints_.transpose() * vel_joints;
+  Eigen::Vector3d vel_chassis = chassis2joints_.completeOrthogonalDecomposition().solve(vel_joints);
   geometry_msgs::msg::Twist twist;
   twist.angular.z = vel_chassis(0);
   twist.linear.x = vel_chassis(1);

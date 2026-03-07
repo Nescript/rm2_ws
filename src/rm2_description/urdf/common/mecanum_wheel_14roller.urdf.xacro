@@ -90,7 +90,7 @@
         </link>
 
         <!--  joint  -->
-        <joint name="${prefix}_wheel_joint" type="revolute">
+        <joint name="${prefix}_wheel_joint" type="continuous">
             <axis xyz="0 1 0"/>
             <origin xyz="${wheel_x_offset} ${wheel_y_offset} ${wheel_offset_z}" rpy="0 0 0"/>
             <!--      limit not work while type="continuous"-->

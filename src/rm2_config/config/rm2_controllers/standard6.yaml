@@ -6,12 +6,12 @@ controller_manager:
       type: joint_state_broadcaster/JointStateBroadcaster
 
     chassis_controller:
-      type: rm2_chassis_controller/OmniController
+      type: rm2_chassis_controllers/OmniController
 
 chassis_controller:
   ros__parameters:
     # ChassisBase
-    publish_rate: 100
+    publish_rate: 100.0
     publish_map_tf: false
     publish_odom_tf: true
     slam_topic: "/Odometry"
@@ -22,9 +22,9 @@ chassis_controller:
       power_offset: -8.14
     wheel_radius: 0.07625
     twist_angular: 0.5233
-    max_odom_vel: 10
+    max_odom_vel: 10.0
     timeout: 0.1
-    pid_follow: { p: 6.5, i: 0, d: 0.0, u_clamp_max: 0.0, u_clamp_min: 0.0, activate_state_publisher: true }
+    pid_follow: { p: 6.5, i: 0.0, d: 0.0, u_clamp_max: 5.0, u_clamp_min: -5.0, activate_state_publisher: true }
     enable_uphill_acceleration: false
     pitch_angle_threshold: -0.25
     scale: 1.0
@@ -41,25 +41,25 @@ chassis_controller:
       pose: [ 0.147, 0.147, 2.356 ]
       roller_angle: 0.
       radius: 0.07625
-      pid: { p: 0.25, i: 0, d: 0.0, u_clamp_max: 0.0, u_clamp_min: 0.0, activate_state_publisher: true }
+      pid: { p: 0.25, i: 0.0, d: 0.0, u_clamp_max: 4.0, u_clamp_min: -4.0, activate_state_publisher: true }
 
     left_back_wheel_joint:
       pose: [ -0.147, 0.147, -2.356 ]
       roller_angle: 0.
       radius: 0.07625
-      pid: { p: 0.25, i: 0, d: 0.0, u_clamp_max: 0.0, u_clamp_min: 0.0, activate_state_publisher: true }
+      pid: { p: 0.25, i: 0.0, d: 0.0, u_clamp_max: 4.0, u_clamp_min: -4.0, activate_state_publisher: true }
 
     right_front_wheel_joint:
-      pose: [ 0.147, -0.147, 2.356 ]
+      pose: [ 0.147, -0.147, 0.785 ]
       roller_angle: 0.
       radius: 0.07625
-      pid: { p: 0.25, i: 0, d: 0.0, u_clamp_max: 0.0, u_clamp_min: 0.0, activate_state_publisher: true }
+      pid: { p: 0.25, i: 0.0, d: 0.0, u_clamp_max: 4.0, u_clamp_min: -4.0, activate_state_publisher: true }
 
     right_back_wheel_joint:
-      pose: [ -0.147, -0.147, -2.356 ]
+      pose: [ -0.147, -0.147, -0.785 ]
       roller_angle: 0.
       radius: 0.07625
-      pid: { p: 0.25, i: 0, d: 0.0, u_clamp_max: 0.0, u_clamp_min: 0.0, activate_state_publisher: true }
+      pid: { p: 0.25, i: 0.0, d: 0.0, u_clamp_max: 4.0, u_clamp_min: -4.0, activate_state_publisher: true }
 
 
 #controllers:

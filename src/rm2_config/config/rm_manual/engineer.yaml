@@ -1,5 +1,5 @@
 rm_manual:
-  dbus_topic: "/rm_ecat_hw/dbus"
+  dbus_topic: "/rm2_ecat_hw/dbus"
   robot_type: "engineer"
   chassis:
     topic: "/cmd_chassis"

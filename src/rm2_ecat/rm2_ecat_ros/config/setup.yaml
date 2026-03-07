@@ -5,7 +5,7 @@ ethercat_devices:
   - type: Rm
     name: RmSlave1
     configuration_file: device_configurations/RmExample.yaml
-    ethercat_bus: enp7s0
+    ethercat_bus: enp2s0
     ethercat_address: 1
   # - type: Mit
   #   name: MitSlave1

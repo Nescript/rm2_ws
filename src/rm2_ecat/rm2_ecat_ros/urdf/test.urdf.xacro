@@ -33,7 +33,7 @@
       <plugin>transmission_interface/SimpleTransmission</plugin>
       <joint name="test_joint" role="actuated">
         <hardwareInterface>rm2_ecat_ros/RmEcatHardwareInterface</hardwareInterface>
-        <mechanical_reduction>1</mechanical_reduction>    <!-- M3508 19.2032 -->
+        <mechanical_reduction>19.2032</mechanical_reduction>    <!-- M3508 19.2032 -->
         <offset>0.0</offset>
       </joint>
       <actuator name="test_motor" role="actuated">

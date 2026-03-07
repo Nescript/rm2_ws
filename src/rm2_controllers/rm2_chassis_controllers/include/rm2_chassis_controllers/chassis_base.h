@@ -32,9 +32,9 @@ class ChassisBase : public controller_interface::ControllerInterface
 protected:
   struct Command
   {
-    geometry_msgs::msg::Twist cmd_vel_;
-    rm2_msgs::msg::ChassisCmd cmd_chassis_;
-    rclcpp::Time stamp_;
+    geometry_msgs::msg::Twist cmd_vel;
+    rm2_msgs::msg::ChassisCmd cmd_chassis;
+    int64_t stamp_ns;
   };
 
   struct JointGroup
@@ -143,9 +143,6 @@ protected:
    * The reading of parameters in ros2 is different, this function was no use in ros2
   */
 
-  // We should initialize robot state handle use buffer
-  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
-  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
   rm2_control::RobotStateHandle robot_state_handle_;
   /* This vector of interface will be filled by controller manager in active stage, not on_init or on_configure
    * And change effort_command_interface to command_interface_ to adapt to ROS2 structure
@@ -205,6 +202,7 @@ protected:
   double timeout_{ 0.1 };
 
   bool odom_initialized_{ false };
+  bool last_publish_time_initialized_{ false };
   bool slam_updated_{ false };
   bool localization_updated_{ false };
   bool state_changed_{ true };

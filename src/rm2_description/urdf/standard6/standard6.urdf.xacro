@@ -56,14 +56,14 @@
             <state_interface name="effort"/>
         </joint>
 
-        <joint name="right_front_wheel_joint">
+        <joint name="left_back_wheel_joint">
             <command_interface name="effort"/>
             <state_interface name="position"/>
             <state_interface name="velocity"/>
             <state_interface name="effort"/>
         </joint>
 
-        <joint name="left_back_wheel_joint">
+        <joint name="right_front_wheel_joint">
             <command_interface name="effort"/>
             <state_interface name="position"/>
             <state_interface name="velocity"/>
@@ -76,6 +76,54 @@
             <state_interface name="velocity"/>
             <state_interface name="effort"/>
         </joint>
+
+        <transmission name="left_front_wheel_trans">
+            <type>transmission_interface/SimpleTransmission</type>
+            <plugin>transmission_interface/SimpleTransmission</plugin>
+            <joint name="left_front_wheel_joint" role="actuated">
+                <mechanical_reduction>13</mechanical_reduction>
+                <offset>0.0</offset>
+            </joint>
+            <actuator name="left_front_wheel_motor" role="actuated">
+                <mechanical_reduction>1</mechanical_reduction>
+            </actuator>
+        </transmission>
+
+        <transmission name="left_back_wheel_trans">
+            <type>transmission_interface/SimpleTransmission</type>
+            <plugin>transmission_interface/SimpleTransmission</plugin>
+            <joint name="left_back_wheel_joint" role="actuated">
+                <mechanical_reduction>13</mechanical_reduction>
+                <offset>0.0</offset>
+            </joint>
+            <actuator name="left_back_wheel_motor" role="actuated">
+                <mechanical_reduction>1</mechanical_reduction>
+            </actuator>
+        </transmission>
+
+        <transmission name="right_front_wheel_trans">
+            <type>transmission_interface/SimpleTransmission</type>
+            <plugin>transmission_interface/SimpleTransmission</plugin>
+            <joint name="right_front_wheel_joint" role="actuated">
+                <mechanical_reduction>13</mechanical_reduction>
+                <offset>0.0</offset>
+            </joint>
+            <actuator name="right_front_wheel_motor" role="actuated">
+                <mechanical_reduction>1</mechanical_reduction>
+            </actuator>
+        </transmission>
+
+        <transmission name="right_back_wheel_trans">
+            <type>transmission_interface/SimpleTransmission</type>
+            <plugin>transmission_interface/SimpleTransmission</plugin>
+            <joint name="right_back_wheel_joint" role="actuated">
+                <mechanical_reduction>13</mechanical_reduction>
+                <offset>0.0</offset>
+            </joint>
+            <actuator name="right_back_wheel_motor" role="actuated">
+                <mechanical_reduction>1</mechanical_reduction>
+            </actuator>
+        </transmission>
 
         <!--Other joint wait to added-->
     </ros2_control>
