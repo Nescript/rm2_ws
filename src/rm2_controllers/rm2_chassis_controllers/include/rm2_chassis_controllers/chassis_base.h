@@ -22,6 +22,7 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <control_toolbox/pid_ros.hpp>
 #include <unordered_map>
+#include "rm2_common/joint_manager.h"
 
 namespace rm2_chassis_controllers
 {

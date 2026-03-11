@@ -5,7 +5,6 @@
 #pragma once
 
 #include <optional>
-#include <functional>
 #include <controller_interface/controller_interface.hpp>
 #include <unordered_map>
 
@@ -15,6 +14,7 @@ class JointHandle
 {
 public:
   explicit JointHandle(const std::string& name) : name_(name) {}
+  ~JointHandle();
   void bind_interfaces(
     std::optional<std::reference_wrapper<hardware_interface::LoanedStateInterface>> pos,
     std::optional<std::reference_wrapper<hardware_interface::LoanedStateInterface>> vel,
@@ -26,13 +26,11 @@ public:
     effort_state = effort;
     cmd_interface = cmd;
   }
-  void read()
+  void read() 
   {
-    if (pos_state) {
-      cached_pos = pos_state->get().get_value();
-      cached_vel = vel_state->get().get_value();
-      cached_effort = effort_state->get().get_value();
-    }
+    if (pos_state) cached_pos = pos_state->get().get_value();
+    if (vel_state) cached_vel = vel_state->get().get_value();
+    if (effort_state) cached_effort = effort_state->get().get_value();
   }
   inline double getVelocity() const {return cached_vel;}
   inline double getPosition() const {return cached_pos;}
@@ -55,9 +53,11 @@ private:
   double cached_vel = 0.0;
   double cached_effort = 0.0;
 };
+
 class JointManager
 {
 public:
+  ~JointManager();
   explicit JointManager(std::vector<std::string> names)
   {
     for (const auto& name : names)
@@ -65,6 +65,15 @@ public:
       joints_.emplace_back(name);
     }
   };
+  JointManager();
+  void add_joint(std::string name) {joints_.emplace_back(name);}
+  size_t size() const { return joints_.size(); }
+  std::vector<std::string> get_names() const {
+    std::vector<std::string> names;
+    names.reserve(joints_.size());
+    for (const auto& joint : joints_) { names.push_back(joint.getName()); }
+    return names;
+  }
   void read_all() {
     for (auto & joint : joints_) 
     {
@@ -83,23 +92,19 @@ public:
   void bind_all(std::vector<hardware_interface::LoanedStateInterface>& state_interfaces,
                 std::vector<hardware_interface::LoanedCommandInterface>& command_interfaces)
   {
-    // 1. 建立索引表 (提升查找速度到 O(1))
     std::unordered_map<std::string, std::reference_wrapper<hardware_interface::LoanedStateInterface>> state_map;
-    for (auto& itf : state_interfaces) {
-      state_map.emplace(itf.get_name(), std::ref(itf));
+    for (auto& it : state_interfaces) {
+      state_map.emplace(it.get_name(), std::ref(it));
     }
 
     std::unordered_map<std::string, std::reference_wrapper<hardware_interface::LoanedCommandInterface>> cmd_map;
-    for (auto& itf : command_interfaces) {
-      cmd_map.emplace(itf.get_name(), std::ref(itf));
+    for (auto& it : command_interfaces) {
+      cmd_map.emplace(it.get_name(), std::ref(it));
     }
 
-    // 2. 遍历关节进行绑定
     for (auto & joint : joints_) 
     {
       const std::string name = joint.getName();
-      
-      // 获取状态接口 (使用 std::optional 处理不存在的情况)
       auto get_state = [&](const std::string& type) -> std::optional<std::reference_wrapper<hardware_interface::LoanedStateInterface>> {
         auto it = state_map.find(name + "/" + type);
         return (it != state_map.end()) ? std::make_optional(it->second) : std::nullopt;
@@ -110,16 +115,16 @@ public:
         return (it != cmd_map.end()) ? std::make_optional(it->second) : std::nullopt;
       };
 
-      // 3. 执行真正的绑定
+      // todo yaml
       joint.bind_interfaces(
-        get_state(hardware_interface::HW_IF_POSITION),
-        get_state(hardware_interface::HW_IF_VELOCITY),
-        get_state(hardware_interface::HW_IF_EFFORT),
-        get_cmd(hardware_interface::HW_IF_EFFORT) // 根据 config 可能有不同类型
+        get_state("position"),
+        get_state("velocity"),
+        get_state("effort"),
+        get_cmd("effort")
       );
     }
   }
-  std::vector<std::string> get_command_interface_names()
+  std::vector<std::string> get_command_interface_names() const
   {
     std::vector<std::string> names;
     for (const auto & joint : joints_) 
