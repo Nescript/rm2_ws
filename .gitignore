@@ -6,6 +6,7 @@ devel/
 .cache/
 .idea/
 .clangd
+.idea
 tools/
 src/ethercat_learning/
 src/ros2_learning/
