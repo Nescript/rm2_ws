@@ -23,7 +23,7 @@ hardware_interface::CallbackReturn OmniController::on_init()
       RCLCPP_ERROR(get_node()->get_logger(), "No wheel joint given (namespace: %s)", get_node()->get_name());
       return CallbackReturn::ERROR;
     }
-    joint_manager_ = std::make_unique<joint_manager::JointManager>(joint_names);
+    joint_manager_.init(joint_names);
     K = get_node()->declare_parameter<double>("K", 1.0);
   }
   catch (std::exception& ex)
@@ -41,7 +41,7 @@ hardware_interface::CallbackReturn OmniController::on_configure(const rclcpp_lif
     return CallbackReturn::ERROR;
   }
 
-  auto joint_names = joint_manager_->get_names();
+  auto joint_names = joint_manager_.get_names();
 
   pids_.clear();
   pids_.reserve(joint_names.size());
@@ -96,7 +96,7 @@ controller_interface::CallbackReturn OmniController::on_activate(const rclcpp_li
     return CallbackReturn::ERROR;
   }
 
-  joint_manager_->bind_all(state_interfaces_, command_interfaces_);
+  joint_manager_.bind_all(state_interfaces_, command_interfaces_);
 
   return CallbackReturn::SUCCESS;
 }
@@ -115,7 +115,7 @@ controller_interface::InterfaceConfiguration OmniController::command_interface_c
 {
   controller_interface::InterfaceConfiguration config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
-  config.names = joint_manager_->get_command_interface_names();
+  config.names = joint_manager_.get_command_interface_names();
   return config;
 }
 
@@ -123,12 +123,13 @@ controller_interface::InterfaceConfiguration OmniController::state_interface_con
 {
   controller_interface::InterfaceConfiguration config;
   config.type = controller_interface::interface_configuration_type::INDIVIDUAL;
-  config.names = joint_manager_->get_state_interface_names();
+  config.names = joint_manager_.get_state_interface_names();
   return config;
 }
 
 void OmniController::moveJoint(const rclcpp::Time& /*time*/, const rclcpp::Duration& period)
 {
+  joint_manager_.read_all();
   Eigen::Vector3d vel_chassis;
   if (state_ == RAW)
   {
@@ -140,21 +141,19 @@ void OmniController::moveJoint(const rclcpp::Time& /*time*/, const rclcpp::Durat
   vel_chassis << vel_cmd_.z, vel_cmd_.x, vel_cmd_.y;
   Eigen::VectorXd vel_joints = chassis2joints_ * vel_chassis;
 
-  joint_manager_->read_all();
-  for (size_t i = 0; i < joint_manager_->size(); ++i)
+  for (size_t i = 0; i < joint_manager_.size(); ++i)
   {
-    double error = vel_joints[i] - (*joint_manager_)[i].getVelocity();
-    (*joint_manager_)[i].setCommand(pids_[i]->compute_command(error, period));
+    double error = vel_joints[i] - joint_manager_[i].getVelocity();
+    joint_manager_[i].setCommand(pids_[i]->compute_command(error, period));
   }
 }
 
 geometry_msgs::msg::Twist OmniController::odometry()
 {
-  joint_manager_->read_all();
-  Eigen::VectorXd vel_joints(joint_manager_->size());
-  for (size_t i = 0; i < joint_manager_->size(); i++)
+  Eigen::VectorXd vel_joints(joint_manager_.size());
+  for (size_t i = 0; i < joint_manager_.size(); i++)
   {
-    vel_joints[i] = (*joint_manager_)[i].getVelocity();
+    vel_joints[i] = joint_manager_[i].getVelocity();
   }
   Eigen::Vector3d vel_chassis = chassis2joints_.completeOrthogonalDecomposition().solve(vel_joints);
   geometry_msgs::msg::Twist twist;

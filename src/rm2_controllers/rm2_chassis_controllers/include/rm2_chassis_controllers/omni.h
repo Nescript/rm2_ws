@@ -23,7 +23,7 @@ private:
   void moveJoint(const rclcpp::Time& /*time*/, const rclcpp::Duration& period) override;
   geometry_msgs::msg::Twist odometry() override;
 
-  std::unique_ptr<joint_manager::JointManager> joint_manager_;
+  joint_manager::JointManager joint_manager_;
   std::vector<std::shared_ptr<control_toolbox::PidROS>> pids_;
   double K = 0.;  // Feedforward gain
   Eigen::MatrixXd chassis2joints_;
