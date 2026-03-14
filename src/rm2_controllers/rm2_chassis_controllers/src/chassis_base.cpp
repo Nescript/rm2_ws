@@ -539,18 +539,16 @@ void ChassisBase::tfVelToBase(const std::string& from)
 
 void ChassisBase::powerLimit()
 {
-  if (power_limit_joints_ == nullptr)
-  {
-    return;
-  }
+  int jointNum = power_limit_joints_.size();
+  if (!jointNum) return;
   double power_limit = cmd_rt_buffer_.readFromRT()->cmd_chassis.power_limit;
   // Three coefficients of a quadratic equation in one variable
   double a = 0., b = 0., c = 0.;
   // Whether we must use get_optional()?
-  for (size_t i = 0; i < power_limit_joints_->joint_names.size(); ++i)
+  for (const auto& joint : power_limit_joints_)
   {
-    double cmd_effort = command_interfaces_[power_limit_joints_->cmd_index[i]].get_optional<double>().value();
-    double real_vel = state_interfaces_[power_limit_joints_->vel_index[i]].get_optional<double>().value();
+    double cmd_effort = joint.getCommand();
+    double real_vel = joint.getVelocity();
     a += square(cmd_effort);
     b += std::abs(cmd_effort * real_vel);
     c += square(real_vel);
@@ -560,28 +558,29 @@ void ChassisBase::powerLimit()
   // Root formula for quadratic equation in one variable
   double zoom_coeff = (square(b) - 4 * a * c) > 0 ? ((-b + sqrt(square(b) - 4 * a * c)) / (2 * a)) : 0.;
 
-  for (size_t i = 0; i < power_limit_joints_->joint_names.size(); ++i)
+  for (auto& joint : power_limit_joints_)
   {
     if (pitch_ < pitch_angle_threshold_ && enable_uphill_acceleration_)
     {
-      if (power_limit_joints_->joint_names[i].find("back") != std::string::npos)
+
+      if (joint.getName().find("back") != std::string::npos)
       {
-        (void)command_interfaces_[power_limit_joints_->cmd_index[i]].set_value(zoom_coeff > 1 ?
-          command_interfaces_[power_limit_joints_->cmd_index[i]].get_optional<double>().value() :
-          command_interfaces_[power_limit_joints_->cmd_index[i]].get_optional<double>().value() * zoom_coeff * scale_);
+        (void)joint.setCommand(zoom_coeff > 1 ?
+          joint.getCommand() :
+          joint.getCommand() * zoom_coeff * scale_);
       }
-      if (power_limit_joints_->joint_names[i].find("front") != std::string::npos)
+      if (joint.getName().find("front") != std::string::npos)
       {
-        (void)command_interfaces_[power_limit_joints_->cmd_index[i]].set_value(zoom_coeff > 1 ?
-          command_interfaces_[power_limit_joints_->cmd_index[i]].get_optional<double>().value() :
-          command_interfaces_[power_limit_joints_->cmd_index[i]].get_optional<double>().value() * zoom_coeff);
+        (void)joint.setCommand(zoom_coeff > 1 ?
+          joint.getCommand() :
+          joint.getCommand() * zoom_coeff * scale_);
       }
     }
     else
     {
-      (void)command_interfaces_[power_limit_joints_->cmd_index[i]].set_value(zoom_coeff > 1 ?
-        command_interfaces_[power_limit_joints_->cmd_index[i]].get_optional<double>().value() :
-        command_interfaces_[power_limit_joints_->cmd_index[i]].get_optional<double>().value() * zoom_coeff);
+      (void)joint.setCommand(zoom_coeff > 1 ?
+        joint.getCommand() :
+        joint.getCommand() * zoom_coeff * scale_);
     }
   }
 }

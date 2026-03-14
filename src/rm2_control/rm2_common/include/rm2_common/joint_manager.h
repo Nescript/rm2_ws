@@ -27,6 +27,7 @@ public:
   inline double getVelocity() const;
   inline double getPosition() const;
   inline double getEffort() const;
+  inline double getCommand() const;
   inline std::string getName() const;
   
   void setCommand(double command);
@@ -65,7 +66,6 @@ public:
 
   std::vector<std::string> get_command_interface_names() const;
   std::vector<std::string> get_state_interface_names() const;
-  int get_size() const;
   
   auto begin() { return joints_.begin(); }
   auto end() { return joints_.end(); }
@@ -107,6 +107,15 @@ inline double JointHandle::getPosition() const {return cached_pos;}
 inline double JointHandle::getEffort() const {return cached_effort;}
 inline std::string JointHandle::getName() const {return name_;}
 
+inline double JointHandle::getCommand() const
+{
+  if (cmd_interface)
+  {
+    return cmd_interface->get().get_value();
+  }
+  return 0.0;
+}
+ 
 inline void JointHandle::setCommand(double command)
 {
   if (cmd_interface) 
@@ -141,10 +150,6 @@ inline std::vector<std::string> JointManager::get_names() const {
   names.reserve(joints_.size());
   for (const auto& joint : joints_) { names.push_back(joint.getName()); }
   return names;
-}
-
-inline int JointManager::get_size() const {
-  return static_cast<int>(joints_.size());
 }
 
 inline void JointManager::read_all() {
