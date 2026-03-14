@@ -73,6 +73,7 @@ public:
   auto end() const { return joints_.end(); }
 
   JointHandle& operator[](size_t index);
+  const JointHandle& operator[](size_t index) const;
 
 private:
   std::vector<JointHandle> joints_;
@@ -229,6 +230,11 @@ inline std::vector<std::string> JointManager::get_state_interface_names() const
 }
 
 inline JointHandle& JointManager::operator[](size_t index) 
+{
+  return joints_.at(index); 
+}
+
+inline const JointHandle& JointManager::operator[](size_t index) const
 {
   return joints_.at(index); 
 }

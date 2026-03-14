@@ -24,6 +24,8 @@ private:
     joint_manager::JointManager wheel_joints;
     size_t size;
   };
+  std::vector<std::shared_ptr<control_toolbox::PidROS>> pivot_pids_;
+  std::vector<std::shared_ptr<control_toolbox::PidROS>> wheel_pids_;
 public:
   SwerveController() = default;
   hardware_interface::CallbackReturn on_init() override;
