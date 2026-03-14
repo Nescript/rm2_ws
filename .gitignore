@@ -12,3 +12,5 @@ src/ethercat_learning/
 src/ros2_learning/
 compile_commands.json
 src/ethercat_grant/COLCON_IGNORE
+
+sync_config.jsonc

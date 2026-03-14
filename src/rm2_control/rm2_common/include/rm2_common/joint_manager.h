@@ -14,7 +14,7 @@ class JointHandle
 {
 public:
   explicit JointHandle(const std::string& name) : name_(name) {}
-  ~JointHandle();
+  ~JointHandle() = default;
   void bind_interfaces(
     std::optional<std::reference_wrapper<hardware_interface::LoanedStateInterface>> pos,
     std::optional<std::reference_wrapper<hardware_interface::LoanedStateInterface>> vel,
@@ -57,7 +57,7 @@ private:
 class JointManager
 {
 public:
-  ~JointManager();
+  ~JointManager() = default;
   explicit JointManager(std::vector<std::string> names)
   {
     for (const auto& name : names)
@@ -65,7 +65,17 @@ public:
       joints_.emplace_back(name);
     }
   };
-  JointManager();
+  JointManager() = default;
+
+  void init(std::vector<std::string> names)
+  {
+    joints_.clear();
+    for (const auto& name : names)
+    {
+      joints_.emplace_back(name);
+    }
+  }
+
   void add_joint(std::string name) {joints_.emplace_back(name);}
   size_t size() const { return joints_.size(); }
   std::vector<std::string> get_names() const {
