@@ -539,13 +539,12 @@ void ChassisBase::tfVelToBase(const std::string& from)
 
 void ChassisBase::powerLimit()
 {
-  int jointNum = power_limit_joints_.size();
-  if (!jointNum) return;
+  if (!power_limit_joints_) return;
   double power_limit = cmd_rt_buffer_.readFromRT()->cmd_chassis.power_limit;
   // Three coefficients of a quadratic equation in one variable
   double a = 0., b = 0., c = 0.;
   // Whether we must use get_optional()?
-  for (const auto& joint : power_limit_joints_)
+  for (const auto& joint : *power_limit_joints_)
   {
     double cmd_effort = joint.getCommand();
     double real_vel = joint.getVelocity();
@@ -558,7 +557,7 @@ void ChassisBase::powerLimit()
   // Root formula for quadratic equation in one variable
   double zoom_coeff = (square(b) - 4 * a * c) > 0 ? ((-b + sqrt(square(b) - 4 * a * c)) / (2 * a)) : 0.;
 
-  for (auto& joint : power_limit_joints_)
+  for (auto& joint : *power_limit_joints_)
   {
     if (pitch_ < pitch_angle_threshold_ && enable_uphill_acceleration_)
     {

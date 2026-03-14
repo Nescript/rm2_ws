@@ -161,7 +161,7 @@ protected:
   // JointGroup knee_joints_;  // If the Legged chassis
   // JointGroup hip_joints_;   // If the Legged chassis
 
-  joint_manager::JointManager power_limit_joints_{};
+  joint_manager::JointManager* power_limit_joints_{ nullptr };
   realtime_tools::RealtimeBuffer<Command> cmd_rt_buffer_;
   realtime_tools::RealtimeBuffer<nav_msgs::msg::Odometry> slam_rt_buffer_;
   realtime_tools::RealtimeBuffer<geometry_msgs::msg::TransformStamped> localization_rt_buffer_;

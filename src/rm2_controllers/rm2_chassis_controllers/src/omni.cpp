@@ -24,6 +24,7 @@ hardware_interface::CallbackReturn OmniController::on_init()
       return CallbackReturn::ERROR;
     }
     joint_manager_.init(joint_names);
+    power_limit_joints_ = &joint_manager_;
     K = get_node()->declare_parameter<double>("K", 1.0);
   }
   catch (std::exception& ex)
@@ -101,6 +102,7 @@ controller_interface::CallbackReturn OmniController::on_activate(const rclcpp_li
   return CallbackReturn::SUCCESS;
 }
 
+// is it neccessary to un config joint manager while on deactivate?
 controller_interface::CallbackReturn OmniController::on_deactivate(const rclcpp_lifecycle::State& previous_state)
 {
   if (ChassisBase::on_deactivate(previous_state) != CallbackReturn::SUCCESS)
