@@ -65,7 +65,13 @@ public:
 
   std::vector<std::string> get_command_interface_names() const;
   std::vector<std::string> get_state_interface_names() const;
+  int get_size() const;
   
+  auto begin() { return joints_.begin(); }
+  auto end() { return joints_.end(); }
+  auto begin() const { return joints_.begin(); }
+  auto end() const { return joints_.end(); }
+
   JointHandle& operator[](size_t index);
 
 private:
@@ -135,6 +141,10 @@ inline std::vector<std::string> JointManager::get_names() const {
   names.reserve(joints_.size());
   for (const auto& joint : joints_) { names.push_back(joint.getName()); }
   return names;
+}
+
+inline int JointManager::get_size() const {
+  return static_cast<int>(joints_.size());
 }
 
 inline void JointManager::read_all() {
